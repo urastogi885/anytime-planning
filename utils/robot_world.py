@@ -46,9 +46,13 @@ def get_y_values(x: int, slopes: list, coordinates, edge_count: int) -> list:
 
 class RobotWorld:
     def __init__(self, radius: int, clearance: int) -> None:
+        # Declare class constants
         self.WORLD_SIZE = 200, 300
         self.DEG_30 = np.pi / 6
         self.DEG_60 = np.pi / 3
+        self.IMG_NAME = "robot_world.png"
+        self.SAVE_DIR = "images"
+        self.SAVE_LOC = os.path.join(os.getcwd(), self.SAVE_DIR, self.IMG_NAME)
         # Various class parameters
         self.height = self.WORLD_SIZE[0]
         self.width = self.WORLD_SIZE[1]
@@ -192,7 +196,7 @@ class RobotWorld:
         Draw map using half-plane equations
         :return: map-image with all obstacles
         """
-        self.world_img = cv2.imread('images/robot_world.png')
+        self.world_img = cv2.imread(self.SAVE_LOC)
         if self.world_img is None:
             # Initialize
             self.world_img = np.zeros((self.height, self.width, 3), dtype=np.uint8)
@@ -203,9 +207,9 @@ class RobotWorld:
             self.draw_ellipse()
             self.draw_polygons()
             # Save the world to avoid re-creating at every run
-            save_dir = os.path.join(os.getcwd(), "images")
+            save_dir = os.path.join(os.getcwd(), self.SAVE_DIR)
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
-            cv2.imwrite(os.path.join(save_dir, "robot_world.png"), self.world_img)
+            cv2.imwrite(self.SAVE_LOC, self.world_img)
 
         return self.world_img
