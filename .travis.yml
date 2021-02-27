@@ -5,14 +5,14 @@ os: linux
 language: python
 
 # Set the python version to 3.5
-python: 3.5
+python: 3.6
 
 before_install:
   - sudo apt-get update
 
 # Install the library dependencies
 install:
-  - pip3 install numpy
+  - pip3 install numpy opencv-python
 
 # Run python scripts
 script:
