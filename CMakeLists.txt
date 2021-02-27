@@ -10,4 +10,4 @@ include_directories(
 )
 
 ## Add executables
-add_executable(explorer src/explorer.cpp src/actions.cpp)
+add_executable(explorer src/explorer.cc src/actions.cc)
