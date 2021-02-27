@@ -27,3 +27,33 @@
  * @author Umang Rastogi
  * @brief Defines the PathFinder's class to return coordinates of the next node
  */
+
+#ifndef INCLUDE_PATHFINDER_PATHFINDER_H_
+#define INCLUDE_PATHFINDER_PATHFINDER_H_
+
+class PathFinder {
+    private:
+        int start_x, start_y, goal_x, goal_y;
+
+    public:
+        /**
+         * @brief Constructor for the class
+         * @param none
+         * @return none
+         */
+        PathFinder();
+
+        /**
+         * @brief Constructor for the class
+         * @param none
+         * @return none
+         */
+        ~PathFinder();
+
+        int FindPathToGoal();
+
+        void GeneratePathList();
+};
+
+
+#endif  // INCLUDE_PATHFINDER_PATHFINDER_H_

@@ -29,7 +29,7 @@
  */
 
 #include <iostream>
-#include "actions.h"
+#include "actions/actions.h"
 
 /**
  * @brief Main entry point of the project
@@ -39,7 +39,7 @@ int main(int argc, char ** argv) {
     for (uint8_t i = 0; i < actions.kMaxNumActions; i++) {
         printf("Next child node: (%d, %d)\n", actions.GetNextCoord(50, i), actions.GetNextCoord(30, i, 'y'));
     }
-    
+
     if (actions.GetNextCoord(50, 10) < 0) {
         printf("Invalid action for the robot!\n");
         return -1;

@@ -28,20 +28,20 @@
  * @brief Implements the Actions' class to return coordinates of the next node
  */
 
-#include "actions.h"
+#include "actions/actions.h"
 
 Actions::Actions() {
     coordType = 'x';
+    coordinate = 0;
 }
 
 int Actions::GetNextCoord(uint16_t prevCoord, uint8_t action, char type) {
     coordinate = prevCoord;
     coordType = type;
-    switch (action)
-    {
+    switch (action) {
     case kUp:
         return GoUp();
-    
+
     case kUpRight:
         return GoUpRight();
 

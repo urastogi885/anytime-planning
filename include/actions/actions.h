@@ -28,8 +28,8 @@
  * @brief Defines the Actions' class to return coordinates of the next node
  */
 
-#ifndef INCLUDE_ACTIONS_H
-#define INCLUDE_ACTIONS_H
+#ifndef INCLUDE_ACTIONS_ACTIONS_H_
+#define INCLUDE_ACTIONS_ACTIONS_H_
 
 #include <cstdint>
 
@@ -129,7 +129,7 @@ class Actions {
          * @param type Defines whether it is an x or y co-ordinate
          * @return Coordinate of the next node
          */
-        int GetNextCoord(uint16_t prevCoord, uint8_t action, char type='x');
+        int GetNextCoord(uint16_t prevCoord, uint8_t action, char type = 'x');
 };
 
-#endif  //  INCLUDE_ACTIONS_H
+#endif  //  INCLUDE_ACTIONS_ACTIONS_H_
