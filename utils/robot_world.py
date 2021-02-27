@@ -2,8 +2,6 @@ import os
 import cv2
 import numpy as np
 
-from utils import constants
-
 
 def get_slopes(points) -> list:
     """
