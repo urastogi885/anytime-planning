@@ -29,13 +29,16 @@
  */
 
 #include <iostream>
-#include "actions/actions.h"
+#include "pathFinder/pathFinder.h"
 
 /**
  * @brief Main entry point of the project
  */
 int main(int argc, char ** argv) {
     Actions actions;
+    PathFinder path_finder = PathFinder(50, 30, 150, 150, "images/robot_world.png");
+    path_finder.FindPathToGoal();
+
     for (uint8_t i = 0; i < actions.kMaxNumActions; i++) {
         printf("Next child node: (%d, %d)\n", actions.GetNextCoord(50, i), actions.GetNextCoord(30, i, 'y'));
     }
