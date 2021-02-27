@@ -23,12 +23,12 @@
  */
 
 /**
- * @file actions.cpp
+ * @file actions.cc
  * @author Umang Rastogi
  * @brief Implements the Actions' class to return coordinates of the next node
  */
 
-#include "actions.hpp"
+#include "actions.h"
 
 Actions::Actions() {
     coordType = 'x';

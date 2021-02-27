@@ -23,13 +23,13 @@
  */
 
 /**
- * @file explorer.cpp
+ * @file explorer.cc
  * @author Umang Rastogi
  * @brief Main file to run the entire project
  */
 
 #include <iostream>
-#include "actions.hpp"
+#include "actions.h"
 
 /**
  * @brief Main entry point of the project

@@ -23,13 +23,13 @@
  */
 
 /**
- * @file actions.hpp
+ * @file actions.h
  * @author Umang Rastogi
  * @brief Defines the Actions' class to return coordinates of the next node
  */
 
-#ifndef INCLUDE_ACTIONS_HPP
-#define INCLUDE_ACTIONS_HPP
+#ifndef INCLUDE_ACTIONS_H
+#define INCLUDE_ACTIONS_H
 
 #include <cstdint>
 
@@ -132,4 +132,4 @@ class Actions {
         int GetNextCoord(uint16_t prevCoord, uint8_t action, char type='x');
 };
 
-#endif  //  INCLUDE_ACTIONS_HPP
+#endif  //  INCLUDE_ACTIONS_H
