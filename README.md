@@ -11,10 +11,8 @@ git clone https://github.com/urastogi885/anytime-planning
 cd anytime-planning/
 ```
 
-- Create a build directory, configure and compile the project, and run it
+- Configure the project and it
 ```
-mkdir build/ && cd build/
-cmake ..
-cmake --build .
-./explorer
+bash explorer.sh
+python3 main.py 
 ```
