@@ -6,13 +6,12 @@ dist: trusty
 language: cpp
 compiler: gcc
 
-python: 3.6
-
 before_install:
   - sudo apt-get update
 
 install:
-  # Install python dependencies 
+  # Install python dependencies
+  - sudo apt-get install python3-pip python3-dev
   - pip3 install numpy opencv-python
 
   # Install C++ dependencies
