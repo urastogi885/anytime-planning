@@ -31,26 +31,48 @@
 #ifndef INCLUDE_PATHFINDER_PATHFINDER_H_
 #define INCLUDE_PATHFINDER_PATHFINDER_H_
 
+#include <opencv2/opencv.hpp>
+#include "actions/actions.h"
+
+using namespace std;
+
 class PathFinder {
     private:
-        int start_x, start_y, goal_x, goal_y;
+        uint16_t start_x, start_y, goal_x, goal_y;
+        cv::Mat robot_world;
+        struct MinHeapComparator {
+            bool operator()(vector<float> const& a, vector<float> const& b) const{
+                // sanity checks
+                assert(a.size() == 3);
+                assert(b.size() == 3);
+
+                // reverse sort puts the lowest value at the top    
+                return a[2] > b[2];
+            }
+        };
+
+        void PrintVector(vector<float> vec);
 
     public:
         /**
          * @brief Constructor for the class
-         * @param none
+         * @param xs x-coordinate of robot's start postion
+         * @param ys y-coordinate of robot's start postion
+         * @param xg x-coordinate of robot's goal postion
+         * @param yg y-coordinate of robot's goal postion
+         * @param robot_world_loc Location of robot's world image
          * @return none
          */
-        PathFinder();
+        PathFinder(uint16_t xs, uint16_t ys, uint16_t xg, uint16_t yg, string robot_world_loc);
 
         /**
-         * @brief Constructor for the class
+         * @brief Destructor for the class
          * @param none
          * @return none
          */
         ~PathFinder();
 
-        int FindPathToGoal();
+        int8_t FindPathToGoal();
 
         void GeneratePathList();
 };
