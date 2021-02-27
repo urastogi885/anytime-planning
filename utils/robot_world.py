@@ -5,10 +5,9 @@ import numpy as np
 from utils import constants
 
 
-def get_slopes(points):
+def get_slopes(points) -> list:
     """
     Get slope of each edge of the polygon
-    Polygon can have either have 4 or 6 edges
     :param points: coordinates of the polygon
     :return: a list of slopes of the edges of the polygon
     """
@@ -30,7 +29,7 @@ def get_slopes(points):
     return slopes
 
 
-def get_y_values(x, slopes, coordinates, edge_count):
+def get_y_values(x: int, slopes: list, coordinates, edge_count: int) -> list:
     """
     Calculate the y value of the current x from each edge
     :param x: x-coordinate of the current node
@@ -48,19 +47,20 @@ def get_y_values(x, slopes, coordinates, edge_count):
 
 
 class RobotWorld:
-    def __init__(self, radius, clearance):
-        self.deg_30 = np.pi / 6
-        self.deg_60 = np.pi / 3
+    def __init__(self, radius: int, clearance: int) -> None:
+        self.WORLD_SIZE = 200, 300
+        self.DEG_30 = np.pi / 6
+        self.DEG_60 = np.pi / 3
         # Various class parameters
-        self.height = constants.WORLD_SIZE[0]
-        self.width = constants.WORLD_SIZE[1]
+        self.height = self.WORLD_SIZE[0]
+        self.width = self.WORLD_SIZE[1]
         self.thresh = radius + clearance
         # Get the robot's world
         self.world_img = self.draw_obstacles()
         # Get image to search for obstacles
         self.check_img = self.erode_image()
 
-    def draw_circle(self):
+    def draw_circle(self) -> None:
         """
         Draw the circle obstacle on the map-image
         :return: nothing
@@ -78,7 +78,7 @@ class RobotWorld:
                 if (x - a) ** 2 + (y - b) ** 2 <= r ** 2:
                     self.world_img[y][x] = (0, 0, 0)
 
-    def draw_ellipse(self):
+    def draw_ellipse(self) -> None:
         """
         Draw the circle obstacle on the map-image
         :return: nothing
@@ -97,7 +97,7 @@ class RobotWorld:
                 if ((x - center_a) / a) ** 2 + ((y - center_b) / b) ** 2 <= 1:
                     self.world_img[y][x] = (0, 0, 0)
 
-    def draw_polygons(self):
+    def draw_polygons(self) -> None:
         """
         Draw the convex polygon, rectangle and rhombus on the map-image
         :return: nothing
@@ -110,10 +110,10 @@ class RobotWorld:
                                   (75, self.height - 120),
                                   (50, self.height - 150)], dtype=np.int32)
         # Coordinates of the rectangle
-        coord_rectangle = np.array([(95 - 75 * np.cos(self.deg_30), self.height - 75 * np.sin(self.deg_30) - 30),
-                                    (95 - 75 * np.cos(self.deg_30) + 10 * np.cos(self.deg_60), self.height
-                                     - 75 * np.sin(self.deg_30) - 10 * np.sin(self.deg_60) - 30),
-                                    (95 + 10 * np.cos(self.deg_60), self.height - 10 * np.sin(self.deg_60) - 30),
+        coord_rectangle = np.array([(95 - 75 * np.cos(self.DEG_30), self.height - 75 * np.sin(self.DEG_30) - 30),
+                                    (95 - 75 * np.cos(self.DEG_30) + 10 * np.cos(self.DEG_60), self.height
+                                     - 75 * np.sin(self.DEG_30) - 10 * np.sin(self.DEG_60) - 30),
+                                    (95 + 10 * np.cos(self.DEG_60), self.height - 10 * np.sin(self.DEG_60) - 30),
                                     (95, self.height - 30)],
                                    dtype=np.int32).reshape((-1, 2))
         # Coordinates of the rhombus
@@ -152,7 +152,7 @@ class RobotWorld:
                 elif y_rhom[0] <= y <= y_rhom[3] and y_rhom[1] <= y <= y_rhom[2]:
                     self.world_img[y][x] = (0, 0, 0)
 
-    def check_node_validity(self, x, y):
+    def check_node_validity(self, x: int, y: int) -> bool:
         """
         Method to check whether point lies within any obstacle
         :param x: x-coordinate of the current node
