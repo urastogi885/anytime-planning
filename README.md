@@ -14,5 +14,5 @@ cd anytime-planning/
 - Configure the project and it
 ```
 bash explorer.sh
-python3 main.py 
+python3 main.py 3,1 
 ```
