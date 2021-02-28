@@ -30,15 +30,19 @@
 
 #include "pathFinder/pathFinder.h"
 
-PathFinder::PathFinder(uint16_t xs, uint16_t ys, uint16_t xg, uint16_t yg, string robot_world_loc) {
-    start_x = xs;
-    start_y = ys;
-    goal_x = xg;
-    goal_y = yg;
-    robot_world = cv::imread(robot_world_loc);
+PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, string robot_world_loc) {
+    // Store start and goal position of the robot
+    robot_start_pos[0] = start_x;
+    robot_start_pos[1] = start_y;
+    robot_goal_pos[0] = goal_x;
+    robot_goal_pos[1] = goal_y;
+    // Read the image and store its size
+    robot_world = cv::imread(robot_world_loc, CV_LOAD_IMAGE_GRAYSCALE);
+    robot_world_size[1] = robot_world.rows;
+    robot_world_size[0] = robot_world.cols;
 }
 
-int8_t PathFinder::FindPathToGoal() {
+bool PathFinder::FindPathToGoal() {
     priority_queue<vector<float>, vector<vector<float>>, MinHeapComparator> queue_nodes;
 
     vector<float> node1 = {50, 30, 40.6};
@@ -50,7 +54,8 @@ int8_t PathFinder::FindPathToGoal() {
     queue_nodes.push(node3);
 
     PrintVector(queue_nodes.top());
-    return 0;
+
+    return true;
 }
 
 void PathFinder::PrintVector(vector<float> vec) { 
@@ -59,7 +64,19 @@ void PathFinder::PrintVector(vector<float> vec) {
     } 
     cout << endl;
     return;
-} 
+}
+
+bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {
+    pos_y = robot_world_size[1] - pos_y;
+    // Boundary and obstacle space check
+    if (pos_x <= 0 || pos_x > robot_world_size[0] || pos_y <= 0 || pos_y > robot_world_size[1]) {
+        return false;
+    } else if ((int)robot_world.at<uchar>(pos_y, pos_x) == 0) {
+        return false;
+    }
+
+    return true;
+}
 
 PathFinder::~PathFinder() {
 }

@@ -38,7 +38,8 @@ using namespace std;
 
 class PathFinder {
     private:
-        uint16_t start_x, start_y, goal_x, goal_y;
+        uint16_t robot_start_pos[2], robot_goal_pos[2];
+        uint16_t robot_world_size[2];
         cv::Mat robot_world;
         struct MinHeapComparator {
             bool operator()(vector<float> const& a, vector<float> const& b) const{
@@ -56,14 +57,14 @@ class PathFinder {
     public:
         /**
          * @brief Constructor for the class
-         * @param xs x-coordinate of robot's start postion
-         * @param ys y-coordinate of robot's start postion
-         * @param xg x-coordinate of robot's goal postion
-         * @param yg y-coordinate of robot's goal postion
+         * @param start_x x-coordinate of robot's start postion
+         * @param start_y y-coordinate of robot's start postion
+         * @param goal_x x-coordinate of robot's goal postion
+         * @param goal_y y-coordinate of robot's goal postion
          * @param robot_world_loc Location of robot's world image
          * @return none
          */
-        PathFinder(uint16_t xs, uint16_t ys, uint16_t xg, uint16_t yg, string robot_world_loc);
+        PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, string robot_world_loc);
 
         /**
          * @brief Destructor for the class
@@ -72,9 +73,27 @@ class PathFinder {
          */
         ~PathFinder();
 
-        int8_t FindPathToGoal();
+        /**
+         * @brief Checks whether a node lies in obstacle space
+         * @param pos_x x-coordinate of the node
+         * @param pos_y y-coordinate of the node
+         * @return true if node does not lie in obstacle space
+         */
+        bool IsNodeValid(uint16_t pos_x, uint16_t pos_y);
 
-        void GeneratePathList();
+        /**
+         * @brief Finds a path from start to goal if it exists
+         * @param none
+         * @return true if path if found
+         */
+        bool FindPathToGoal();
+
+        /**
+         * @brief Generates a text file listing the nodes in the path
+         * @param none
+         * @return true if text file generate is a success
+         */
+        bool GeneratePathList();
 };
 
 
