@@ -14,14 +14,15 @@ def get_slopes(points) -> list:
     i = 0
     # Define an empty list to store slopes of all edges
     slopes = []
+
     while i < points_length:
         # Get indices of the two points of the edge
         if i != points_length - 1:
             j = i + 1
         else:
             j = 0
-        # Calculate slope and append it to the list
-        slopes.append((points[j][1] - points[i][1]) / (points[j][0] - points[i][0]))
+        # Calculate slope and add it to the list
+        slopes += (points[j][1] - points[i][1]) / (points[j][0] - points[i][0])
         i += 1
 
     return slopes
@@ -36,11 +37,11 @@ def get_y_values(x: int, slopes: list, coordinates, edge_count: int) -> list:
     :param edge_count: no. of edges in the polygon
     :return: a list of all y-values
     """
-    # Define an empty list to store all y-values
     dist = []
+    # Store all y-values
     for i in range(edge_count):
-        dist.append(slopes[i] * (x - coordinates[i][0]) + coordinates[i][1])
-    # Return the list of y-values
+        dist += slopes[i] * (x - coordinates[i][0]) + coordinates[i][1]
+
     return dist
 
 
@@ -51,8 +52,10 @@ class RobotWorld:
         self.DEG_30 = np.pi / 6
         self.DEG_60 = np.pi / 3
         self.IMG_NAME = "robot_world.png"
+        self.CHECK_IMG_NAME = "check_img.png"
         self.SAVE_DIR = "images"
         self.SAVE_LOC = os.path.join(os.getcwd(), self.SAVE_DIR, self.IMG_NAME)
+        self.CHECK_IMG_LOC = os.path.join(os.getcwd(), self.SAVE_DIR, self.CHECK_IMG_NAME)
         # Various class parameters
         self.height = self.WORLD_SIZE[0]
         self.width = self.WORLD_SIZE[1]
@@ -60,11 +63,12 @@ class RobotWorld:
         # Get the robot's world
         self.world_img = self.draw_obstacles()
         # Get image to search for obstacles
-        self.check_img = self.erode_image()
+        self.erode_image()
 
     def draw_circle(self) -> None:
         """
         Draw the circle obstacle on the map-image
+        :param: nothing
         :return: nothing
         """
         # Define parameters of circular obstacles
@@ -83,6 +87,7 @@ class RobotWorld:
     def draw_ellipse(self) -> None:
         """
         Draw the circle obstacle on the map-image
+        :param: nothing
         :return: nothing
         """
         # Define parameters of elliptical obstacles
@@ -102,6 +107,7 @@ class RobotWorld:
     def draw_polygons(self) -> None:
         """
         Draw the convex polygon, rectangle and rhombus on the map-image
+        :param: nothing
         :return: nothing
         """
         # Coordinates of the convex polygon
@@ -154,26 +160,11 @@ class RobotWorld:
                 elif y_rhom[0] <= y <= y_rhom[3] and y_rhom[1] <= y <= y_rhom[2]:
                     self.world_img[y][x] = (0, 0, 0)
 
-    def check_node_validity(self, x: int, y: int) -> bool:
-        """
-        Method to check whether point lies within any obstacle
-        :param x: x-coordinate of the current node
-        :param y: y-coordinate of the current node
-        :return: false if point lies within any obstacle
-        """
-        # Check whether the current node lies within the map
-        if x >= self.width or y >= self.height:
-            return False
-        # Check whether the current node lies within any obstacle
-        elif self.check_img[y, x].all() == 0:
-            return False
-
-        return True
-
-    def erode_image(self):
+    def erode_image(self) -> bool:
         """
         Get eroded image to check for obstacles considering the robot radius and clearance
-        :return: image with obstacle space expanded to distance threshold between robot and obstacle
+        :param: nothing
+        :return: Status of file creation
         """
         # Get map with obstacles
         eroded_img = self.world_img.copy()
@@ -189,11 +180,26 @@ class RobotWorld:
                             or 0 <= x < self.thresh or self.height - self.thresh <= y < self.height):
                         eroded_img[y][x] = (0, 0, 0)
 
-        return eroded_img
+        cv2.imwrite(self.CHECK_IMG_LOC, eroded_img)
+        if not os.path.exists(self.CHECK_IMG_LOC):
+            return False
+        return True
+
+    def remove_check_image(self) -> bool:
+        """
+        Remove check image from file system
+        :param: nothing
+        :return: Status of removal
+        """
+        os.remove(self.CHECK_IMG_LOC)
+        if os.path.exists(self.CHECK_IMG_LOC):
+            return False
+        return True
 
     def draw_obstacles(self):
         """
         Draw map using half-plane equations
+        :param: nothing
         :return: map-image with all obstacles
         """
         self.world_img = cv2.imread(self.SAVE_LOC)
