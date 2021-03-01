@@ -168,6 +168,7 @@ class RobotWorld:
         """
         # Get map with obstacles
         eroded_img = self.world_img.copy()
+        eroded_img = cv2.cvtColor(eroded_img, cv2.COLOR_BGR2GRAY)
         # Erode map image for rigid robot
         if self.thresh:
             kernel_size = (self.thresh * 2) + 1
@@ -178,7 +179,7 @@ class RobotWorld:
                 for x in range(self.width):
                     if (0 <= y < self.thresh or self.width - self.thresh <= x < self.width
                             or 0 <= x < self.thresh or self.height - self.thresh <= y < self.height):
-                        eroded_img[y][x] = (0, 0, 0)
+                        eroded_img[y][x] = 0
 
         cv2.imwrite(self.CHECK_IMG_LOC, eroded_img)
         if not os.path.exists(self.CHECK_IMG_LOC):
