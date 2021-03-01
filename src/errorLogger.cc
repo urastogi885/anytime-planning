@@ -23,51 +23,23 @@
  */
 
 /**
- * @file structures.h
+ * @file errorLogger.cc
  * @author Umang Rastogi
- * @brief Defines various useful data structures for the project
+ * @brief Implements the ErrorLogger's class to find a path from start to goal if it exists
  */
 
-#ifndef INCLUDE_STRUCTURES_STRUCTURES_H_
-#define INCLUDE_STRUCTURES_STRUCTURES_H_
+#include <iostream>
+#include "errorLogger/errorLogger.h"
 
-#include <cstdint>
-#include <vector>
+ErrorLogger::ErrorLogger(uint8_t log_lvl) {
+    log_level = log_lvl;
+}
 
-enum Action {
-    kUp = 0,
-    kDown,
-    kRight,
-    kLeft,
-    kUpRight,
-    kUpLeft,
-    kDownRight,
-    kDownLeft
-};
-
-enum LogLevel {
-    kInfo = 0,
-    kWarn,
-    kDebug,
-    kFatal
-};
-
-struct Node {
-    uint16_t x, y;
-    float cost_to_come;
-
-    Node(uint16_t x, uint16_t y, float cost)
-        : x(x), y(y), cost_to_come(cost)
-    {
+void ErrorLogger::Log(std::string msg, uint8_t log_lvl) {
+    if (log_lvl >= log_level) {
+        std::cout << "[" << log_levels[log_lvl] << "] " << msg << std::endl;
     }
-};
+}
 
-struct CompareCostToCome {
-    bool operator()(Node const& a, Node const& b) const{
-
-        // reverse sort puts the lowest value at the top    
-        return a.cost_to_come > b.cost_to_come;
-    }
-};
-
-#endif  //  INCLUDE_STRUCTURES_STRUCTURES_H_
+ErrorLogger::~ErrorLogger() {
+}

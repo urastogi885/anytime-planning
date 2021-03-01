@@ -23,51 +23,44 @@
  */
 
 /**
- * @file structures.h
+ * @file errorLogger.h
  * @author Umang Rastogi
- * @brief Defines various useful data structures for the project
+ * @brief Defines the ErrorLogger's class to return coordinates of the next node
  */
 
-#ifndef INCLUDE_STRUCTURES_STRUCTURES_H_
-#define INCLUDE_STRUCTURES_STRUCTURES_H_
+#ifndef INCLUDE_LOGGER_LOGGER_H_
+#define INCLUDE_LOGGER_LOGGER_H_
 
 #include <cstdint>
-#include <vector>
+#include <string>
 
-enum Action {
-    kUp = 0,
-    kDown,
-    kRight,
-    kLeft,
-    kUpRight,
-    kUpLeft,
-    kDownRight,
-    kDownLeft
+class ErrorLogger {
+    private:
+        uint8_t log_level;
+        const std::string log_levels[4] = {"INFO", "WARN", "DEBUG", "FATAL"};
+        
+    public:
+         /**
+         * @brief Constructor for the class
+         * @param log_level Sets the level of logging for the project
+         * @return none
+         */
+        ErrorLogger(uint8_t log_lvl);
+
+         /**
+         * @brief Destructor for the class
+         * @param none
+         * @return none
+         */
+        ~ErrorLogger();
+
+         /**
+         * @brief Prints out error messages 
+         * @param msg Message to be logged
+         * @param log_lvl Level of error to be logged
+         * @return none
+         */
+        void Log(std::string msg, uint8_t log_lvl);
 };
 
-enum LogLevel {
-    kInfo = 0,
-    kWarn,
-    kDebug,
-    kFatal
-};
-
-struct Node {
-    uint16_t x, y;
-    float cost_to_come;
-
-    Node(uint16_t x, uint16_t y, float cost)
-        : x(x), y(y), cost_to_come(cost)
-    {
-    }
-};
-
-struct CompareCostToCome {
-    bool operator()(Node const& a, Node const& b) const{
-
-        // reverse sort puts the lowest value at the top    
-        return a.cost_to_come > b.cost_to_come;
-    }
-};
-
-#endif  //  INCLUDE_STRUCTURES_STRUCTURES_H_
+#endif  // INCLUDE_LOGGER_LOGGER_H_
