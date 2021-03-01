@@ -28,6 +28,7 @@
  * @brief Implements the Actions' class to return coordinates of the next node
  */
 
+#include "structures/structures.h"
 #include "actions/actions.h"
 
 Actions::Actions() {

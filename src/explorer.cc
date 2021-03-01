@@ -28,6 +28,7 @@
  * @brief Main file to run the entire project
  */
 
+#include "actions/actions.h"
 #include "pathFinder/pathFinder.h"
 
 /**
@@ -35,22 +36,13 @@
  */
 int main(int argc, char ** argv) {
     Actions actions;
-    PathFinder path_finder = PathFinder(50, 30, 150, 150, string(argv[1]));
+    PathFinder path_finder = PathFinder(50, 30, 150, 150, std::string(argv[1]));
 
     if (!(path_finder.IsNodeValid(50, 30) && path_finder.IsNodeValid(150, 150))) {
         return -1;
     }
+
     path_finder.FindPathToGoal();
-
-
-    for (uint8_t i = 0; i < actions.kMaxNumActions; i++) {
-        cout << "Next child node: (" << actions.GetNextCoord(50, i) << ", " << actions.GetNextCoord(30, i, 'y') << ")\n";
-    }
-
-    if (actions.GetNextCoord(50, 10) < 0) {
-        cout << "Invalid action for the robot!" << endl;
-        return -2;
-    }
 
     return 0;
 }

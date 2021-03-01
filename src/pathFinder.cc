@@ -28,9 +28,10 @@
  * @brief Implements the PathFinder's class to find a path from start to goal if it exists
  */
 
+#include "actions/actions.h"
 #include "pathFinder/pathFinder.h"
 
-PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, string robot_world_loc) {
+PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, std::string robot_world_loc) {
     // Store start and goal position of the robot
     robot_start_pos[0] = start_x;
     robot_start_pos[1] = start_y;
@@ -43,27 +44,17 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint
 }
 
 bool PathFinder::FindPathToGoal() {
-    priority_queue<vector<float>, vector<vector<float>>, MinHeapComparator> queue_nodes;
+    std::priority_queue<Node, std::vector<Node>, CompareCostToCome> queue_nodes;
 
-    vector<float> node1 = {50, 30, 40.6};
-    vector<float> node2 = {20, 30, 40.6};
-    vector<float> node3 = {50, 30, 41.6};
+    Node node1(50, 30, 40.6);
+    Node node2(50, 30, 41.6);
+    Node node3(20, 30, 40.6);
 
     queue_nodes.push(node1);
     queue_nodes.push(node2);
     queue_nodes.push(node3);
 
-    PrintVector(queue_nodes.top());
-
     return true;
-}
-
-void PathFinder::PrintVector(vector<float> vec) { 
-    for (int i = 0; i < vec.size(); i++) { 
-        cout << vec[i] << " "; 
-    } 
-    cout << endl;
-    return;
 }
 
 bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {
@@ -76,6 +67,14 @@ bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {
     }
 
     return true;
+}
+
+float PathFinder::CostToCome(float parent_node_cost, uint8_t action) {
+    if (action < kUpRight) {
+        return parent_node_cost + 1;
+    }
+
+    return parent_node_cost + sqrt(2);
 }
 
 PathFinder::~PathFinder() {

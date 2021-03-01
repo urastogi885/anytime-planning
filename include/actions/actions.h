@@ -38,17 +38,6 @@ class Actions {
         uint16_t coordinate;
         char coordType;
 
-        enum Action {
-            kUp = 0,
-            kDown,
-            kRight,
-            kLeft,
-            kUpRight,
-            kUpLeft,
-            kDownRight,
-            kDownLeft
-        };
-
         /**
          * @brief Get coordinates after an upward movement
          * @param none

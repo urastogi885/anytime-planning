@@ -31,28 +31,24 @@
 #ifndef INCLUDE_PATHFINDER_PATHFINDER_H_
 #define INCLUDE_PATHFINDER_PATHFINDER_H_
 
+#include <cstdint>
+#include <string>
+#include <math.h>
 #include <opencv2/opencv.hpp>
-#include "actions/actions.h"
 
-using namespace std;
+#include "structures/structures.h"
+#include "errorLogger/errorLogger.h"
 
 class PathFinder {
     private:
         uint16_t robot_start_pos[2], robot_goal_pos[2];
         uint16_t robot_world_size[2];
         cv::Mat robot_world;
-        struct MinHeapComparator {
-            bool operator()(vector<float> const& a, vector<float> const& b) const{
-                // sanity checks
-                assert(a.size() == 3);
-                assert(b.size() == 3);
+        // Instantiate error-logger
+        ErrorLogger error_logger = ErrorLogger(kDebug);
 
-                // reverse sort puts the lowest value at the top    
-                return a[2] > b[2];
-            }
-        };
-
-        void PrintVector(vector<float> vec);
+        float CostToCome(float parent_node_cost, uint8_t action);
+        float CostToGo(uint16_t pos_x, uint16_t pos_y);
 
     public:
         /**
@@ -64,7 +60,7 @@ class PathFinder {
          * @param robot_world_loc Location of robot's world image
          * @return none
          */
-        PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, string robot_world_loc);
+        PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, std::string robot_world_loc);
 
         /**
          * @brief Destructor for the class
