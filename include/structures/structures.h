@@ -52,12 +52,6 @@ enum LogLevel {
     kFatal
 };
 
-enum ParentIdentifier {
-    kNoParent = 0,  // Node does not have a parent yet
-    kParent,        // Node has a parent
-    kStartParent    // Node is the start node
-};
-
 struct Node {
     uint16_t x, y;
     float cost_to_come, total_cost;
