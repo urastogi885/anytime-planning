@@ -28,24 +28,25 @@
  * @brief Defines the ErrorLogger's class to return coordinates of the next node
  */
 
-#ifndef INCLUDE_LOGGER_LOGGER_H_
-#define INCLUDE_LOGGER_LOGGER_H_
+#ifndef INCLUDE_ERRORLOGGER_ERRORLOGGER_H_
+#define INCLUDE_ERRORLOGGER_ERRORLOGGER_H_
 
+// C++ headers
 #include <cstdint>
 #include <string>
 
 class ErrorLogger {
     private:
         uint8_t log_level;
-        const std::string log_levels[4] = {"INFO", "WARN", "DEBUG", "FATAL"};
-        
+        const char * log_levels[4] = {"INFO", "WARN", "DEBUG", "FATAL"};
+
     public:
          /**
          * @brief Constructor for the class
          * @param log_level Sets the level of logging for the project
          * @return none
          */
-        ErrorLogger(uint8_t log_lvl);
+        explicit ErrorLogger(uint8_t log_lvl);
 
          /**
          * @brief Destructor for the class
@@ -60,7 +61,7 @@ class ErrorLogger {
          * @param log_lvl Level of error to be logged
          * @return none
          */
-        void Log(std::string msg, uint8_t log_lvl);
+        void Log(const char * msg, uint8_t log_lvl);
 };
 
-#endif  // INCLUDE_LOGGER_LOGGER_H_
+#endif  // INCLUDE_ERRORLOGGER_ERRORLOGGER_H_

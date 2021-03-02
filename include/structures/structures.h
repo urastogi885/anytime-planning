@@ -31,6 +31,7 @@
 #ifndef INCLUDE_STRUCTURES_STRUCTURES_H_
 #define INCLUDE_STRUCTURES_STRUCTURES_H_
 
+// C++ headers
 #include <cstdint>
 #include <vector>
 
@@ -57,15 +58,13 @@ struct Node {
     float cost_to_come, total_cost;
 
     Node(uint16_t x, uint16_t y, float cost[2])
-        : x(x), y(y), cost_to_come(cost[0]), total_cost(cost[1])
-    {
+        : x(x), y(y), cost_to_come(cost[0]), total_cost(cost[1]) {
     }
 };
 
 struct CompareCostToCome {
     bool operator()(Node const& a, Node const& b) const{
-
-        // reverse sort puts the lowest value at the top    
+        // reverse sort puts the lowest value at the top
         return a.total_cost > b.total_cost;
     }
 };

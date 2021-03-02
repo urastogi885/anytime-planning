@@ -31,25 +31,31 @@
 #ifndef INCLUDE_PATHFINDER_PATHFINDER_H_
 #define INCLUDE_PATHFINDER_PATHFINDER_H_
 
+// C headers
+#include <math.h>
+// C++ headers
 #include <cstdint>
 #include <string>
-#include <math.h>
+#include <utility>
 #include <opencv2/opencv.hpp>
-
+// Other headers
 #include "actions/actions.h"
 #include "structures/structures.h"
 #include "errorLogger/errorLogger.h"
 
 class PathFinder {
     private:
+        // Constants
         const int8_t kNoParent = -1;
         const int8_t kStartParent = -2;
         const std::string kPathListFileName = "pathList.txt";
+        // Robot world
         uint16_t robot_start_pos[2], robot_goal_pos[2];
         uint16_t robot_world_size[2];
         cv::Mat robot_world;
+        // Nodes
         cv::Mat parent_nodes;
-        // Instantiate error-logger
+        // Class objects
         ErrorLogger error_logger = ErrorLogger(kInfo);
         Actions actions;
 
@@ -126,6 +132,5 @@ class PathFinder {
          */
         void GeneratePathList();
 };
-
 
 #endif  // INCLUDE_PATHFINDER_PATHFINDER_H_

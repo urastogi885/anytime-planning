@@ -32,7 +32,8 @@
 #include <fstream>
 #include "pathFinder/pathFinder.h"
 
-PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, std::string robot_world_loc) {
+PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
+                uint16_t goal_y, std::string robot_world_loc) {
     // Store start and goal position of the robot
     robot_start_pos[0] = start_x;
     robot_start_pos[1] = start_y;
@@ -75,7 +76,7 @@ bool PathFinder::FindPathToGoal() {
             uint16_t x = actions.GetNextCoord(current_node.x, i);
             uint16_t y = actions.GetNextCoord(current_node.y, i, 'y');
 
-            if (IsNodeValid(x, y) && (int64)parent_nodes.at<double>(y, x) == kNoParent) {
+            if (IsNodeValid(x, y) && static_cast<int64>(parent_nodes.at<double>(y, x)) == kNoParent) {
                 costs[0] = CostToCome(current_node.cost_to_come, i);
                 costs[1] = CostToGo(x, y, 1) + costs[0];
                 queue_nodes.push(Node(x, y, costs));
@@ -97,8 +98,8 @@ void PathFinder::GeneratePathList() {
     path_list << last_node.first << ", " << last_node.second << std::endl;
 
     // Backtrack the start node
-    while ((int64)parent_nodes.at<double>(last_node.second, last_node.first) != kStartParent) {
-        last_node = UnravelIndex((int64)parent_nodes.at<double>(last_node.second, last_node.first));
+    while (static_cast<int64>(parent_nodes.at<double>(last_node.second, last_node.first)) != kStartParent) {
+        last_node = UnravelIndex(static_cast<int64>(parent_nodes.at<double>(last_node.second, last_node.first)));
         path_list << last_node.first << ", " << last_node.second << std::endl;
     }
 
@@ -112,7 +113,7 @@ bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {
     // Boundary and obstacle space check
     if (pos_x <= 0 || pos_x > robot_world_size[0] || pos_y <= 0 || pos_y > robot_world_size[1]) {
         return false;
-    } else if ((int)robot_world.at<uchar>(pos_y, pos_x) == 0) {
+    } else if (static_cast<uint16_t>(robot_world.at<uchar>(pos_y, pos_x)) == 0) {
         return false;
     }
 
@@ -136,7 +137,8 @@ uint32_t PathFinder::RavelIndex(uint16_t pos_x, uint16_t pos_y) {
 }
 
 std::pair<uint16_t, uint16_t> PathFinder::UnravelIndex(uint32_t identifier) {
-    return std::make_pair((int)identifier%robot_world_size[0], (int)identifier/robot_world_size[0]);
+    return std::make_pair(static_cast<int>(identifier%robot_world_size[0]),
+                    static_cast<int>(identifier/robot_world_size[0]));
 }
 
 PathFinder::~PathFinder() {

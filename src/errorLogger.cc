@@ -35,7 +35,7 @@ ErrorLogger::ErrorLogger(uint8_t log_lvl) {
     log_level = log_lvl;
 }
 
-void ErrorLogger::Log(std::string msg, uint8_t log_lvl) {
+void ErrorLogger::Log(const char * msg, uint8_t log_lvl) {
     if (log_lvl >= log_level) {
         std::cout << "[" << log_levels[log_lvl] << "] " << msg << std::endl;
     }

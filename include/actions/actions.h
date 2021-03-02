@@ -31,6 +31,7 @@
 #ifndef INCLUDE_ACTIONS_ACTIONS_H_
 #define INCLUDE_ACTIONS_ACTIONS_H_
 
+// C++ headers
 #include <cstdint>
 
 class Actions {
