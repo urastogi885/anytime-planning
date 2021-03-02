@@ -42,9 +42,12 @@
 
 class PathFinder {
     private:
+        const int8_t kNoParent = -1;
+        const int8_t kStartParent = -2;
         uint16_t robot_start_pos[2], robot_goal_pos[2];
         uint16_t robot_world_size[2];
         cv::Mat robot_world;
+        cv::Mat parent_nodes;
         // Instantiate error-logger
         ErrorLogger error_logger = ErrorLogger(kInfo);
         Actions actions;
@@ -65,6 +68,21 @@ class PathFinder {
          * @return an estimate of the cost cost to reach the goal
          */
         float CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon);
+
+        /**
+         * @brief Convert an element location into a unique integer
+         * @param pos_x x-coordinate of the node
+         * @param pos_y y-coordinate of the node
+         * @return a unique identifying integer
+         */
+        uint32_t RavelIndex(uint16_t pos_x, uint16_t pos_y);
+
+        /**
+         * @brief Convert an integer into an element location
+         * @param identifier x-coordinate of the node
+         * @return location of the element
+         */
+        std::pair<uint16_t, uint16_t> UnravelIndex(uint32_t identifier);
 
     public:
         /**

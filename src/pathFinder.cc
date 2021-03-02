@@ -40,6 +40,7 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint
     robot_world = cv::imread(robot_world_loc, CV_LOAD_IMAGE_GRAYSCALE);
     robot_world_size[1] = robot_world.rows;
     robot_world_size[0] = robot_world.cols;
+    parent_nodes = cv::Mat::zeros(robot_world_size[1], robot_world_size[0], CV_64F);
 }
 
 bool PathFinder::FindPathToGoal() {
@@ -54,19 +55,11 @@ bool PathFinder::FindPathToGoal() {
     float costs[2] = {0, -1};
     queue_nodes.push(Node(robot_start_pos[0], robot_start_pos[1], costs));
 
-    cv::Mat parent_nodes = cv::Mat::zeros(robot_world_size[1], robot_world_size[0], CV_8U);
     parent_nodes.at<uchar>(robot_start_pos[1], robot_start_pos[0]) = kStartParent;
-    // uint32_t counter = 0;
-    // uint32_t prev = 0;
 
     while (!queue_nodes.empty()) {
         Node current_node = queue_nodes.top();
         queue_nodes.pop();
-        // ++counter;
-        // if (counter - prev == 500) {
-        //     prev = counter;
-        //     error_logger.Log("(" + std::to_string(current_node.x) + ", " + std::to_string(current_node.y) + ", " + std::to_string(current_node.total_cost) + ")", kInfo);
-        // }
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
             error_logger.Log("Path to goal found!", kDebug);
             return true;
@@ -79,7 +72,7 @@ bool PathFinder::FindPathToGoal() {
                 costs[0] = CostToCome(current_node.cost_to_come, i);
                 costs[1] = CostToGo(x, y, 1) + costs[0];
                 queue_nodes.push(Node(x, y, costs));
-                parent_nodes.at<uchar>(y, x) = kParent;
+                parent_nodes.at<uchar>(y, x) = RavelIndex(x, y);
             }
         }
     }
@@ -111,6 +104,14 @@ float PathFinder::CostToCome(float parent_node_cost, uint8_t action) {
 
 float PathFinder::CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon) {
     return epsilon * sqrt(pow(robot_goal_pos[0] - pos_x, 2) + pow(robot_goal_pos[1] - pos_y, 2));
+}
+
+uint32_t PathFinder::RavelIndex(uint16_t pos_x, uint16_t pos_y) {
+    return (pos_y * robot_world_size[0]) + pos_x;
+}
+
+std::pair<uint16_t, uint16_t> PathFinder::UnravelIndex(uint32_t identifier) {
+    return std::make_pair((int)identifier/robot_world_size[0], (int)identifier%robot_world_size[0]);
 }
 
 PathFinder::~PathFinder() {
