@@ -26,4 +26,6 @@ if __name__ == "__main__":
     # Run the explorer
     os.system(EXPLORER_RUN_CMD)
 
+    robot_world.create_video_animation()
+
     robot_world.remove_check_image()
