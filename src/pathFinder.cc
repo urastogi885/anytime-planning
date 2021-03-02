@@ -28,6 +28,8 @@
  * @brief Implements the PathFinder's class to find a path from start to goal if it exists
  */
 
+#include <iostream>
+#include <fstream>
 #include "pathFinder/pathFinder.h"
 
 PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, std::string robot_world_loc) {
@@ -54,7 +56,7 @@ bool PathFinder::FindPathToGoal() {
         return false;
     }
 
-    error_logger.Log("Finding path to goal node...", kDebug);
+    error_logger.Log("Finding path to goal node...", kInfo);
     std::priority_queue<Node, std::vector<Node>, CompareCostToCome> queue_nodes;
 
     float costs[2] = {0, -1};
@@ -66,7 +68,7 @@ bool PathFinder::FindPathToGoal() {
         Node current_node = queue_nodes.top();
         queue_nodes.pop();
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
-            error_logger.Log("Path to goal found!", kDebug);
+            error_logger.Log("Path to goal FOUND!", kDebug);
             return true;
         }
         for (int i = 0; i < actions.kMaxNumActions; ++i) {
@@ -82,23 +84,27 @@ bool PathFinder::FindPathToGoal() {
         }
     }
 
-    error_logger.Log("Path to goal NOT found!", kDebug);
+    error_logger.Log("Path to goal NOT FOUND!", kDebug);
 
     return false;
 }
 
-bool PathFinder::GeneratePathList() {
-    std::vector<std::pair<uint16_t, uint16_t>> path_nodes;
-    std::pair<uint16_t, uint16_t> last_node = std::make_pair(robot_goal_pos[0], robot_goal_pos[1]);
-    path_nodes.push_back(last_node);
-    std::cout << last_node.first << ", " << last_node.second << std::endl;
+void PathFinder::GeneratePathList() {
+    std::ofstream path_list;
+    path_list.open(kPathListFileName, std::ios::out | std::ios::trunc);
 
+    std::pair<uint16_t, uint16_t> last_node = std::make_pair(robot_goal_pos[0], robot_goal_pos[1]);
+    path_list << last_node.first << ", " << last_node.second << std::endl;
+
+    // Backtrack the start node
     while ((int64)parent_nodes.at<double>(last_node.second, last_node.first) != kStartParent) {
         last_node = UnravelIndex((int64)parent_nodes.at<double>(last_node.second, last_node.first));
-        std::cout << last_node.first << ", " << last_node.second << std::endl;
-        path_nodes.push_back(last_node);
+        path_list << last_node.first << ", " << last_node.second << std::endl;
     }
-    return true;
+
+    path_list.close();
+
+    return;
 }
 
 bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {

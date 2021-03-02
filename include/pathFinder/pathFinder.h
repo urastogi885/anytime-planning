@@ -44,6 +44,7 @@ class PathFinder {
     private:
         const int8_t kNoParent = -1;
         const int8_t kStartParent = -2;
+        const std::string kPathListFileName = "pathList.txt";
         uint16_t robot_start_pos[2], robot_goal_pos[2];
         uint16_t robot_world_size[2];
         cv::Mat robot_world;
@@ -121,9 +122,9 @@ class PathFinder {
         /**
          * @brief Generates a text file listing the nodes in the path
          * @param none
-         * @return true if text file generate is a success
+         * @return nothing
          */
-        bool GeneratePathList();
+        void GeneratePathList();
 };
 
 
