@@ -2,13 +2,10 @@ import os
 import cv2
 import numpy as np
 
-from utils import constants
 
-
-def get_slopes(points):
+def get_slopes(points) -> list:
     """
     Get slope of each edge of the polygon
-    Polygon can have either have 4 or 6 edges
     :param points: coordinates of the polygon
     :return: a list of slopes of the edges of the polygon
     """
@@ -17,20 +14,21 @@ def get_slopes(points):
     i = 0
     # Define an empty list to store slopes of all edges
     slopes = []
+
     while i < points_length:
         # Get indices of the two points of the edge
         if i != points_length - 1:
             j = i + 1
         else:
             j = 0
-        # Calculate slope and append it to the list
-        slopes.append((points[j][1] - points[i][1]) / (points[j][0] - points[i][0]))
+        # Calculate slope and add it to the list
+        slopes += (points[j][1] - points[i][1]) / (points[j][0] - points[i][0])
         i += 1
 
     return slopes
 
 
-def get_y_values(x, slopes, coordinates, edge_count):
+def get_y_values(x: int, slopes: list, coordinates, edge_count: int) -> list:
     """
     Calculate the y value of the current x from each edge
     :param x: x-coordinate of the current node
@@ -39,30 +37,40 @@ def get_y_values(x, slopes, coordinates, edge_count):
     :param edge_count: no. of edges in the polygon
     :return: a list of all y-values
     """
-    # Define an empty list to store all y-values
     dist = []
+    # Store all y-values
     for i in range(edge_count):
-        dist.append(slopes[i] * (x - coordinates[i][0]) + coordinates[i][1])
-    # Return the list of y-values
+        dist += slopes[i] * (x - coordinates[i][0]) + coordinates[i][1]
+
     return dist
 
 
 class RobotWorld:
-    def __init__(self, radius, clearance):
-        self.deg_30 = np.pi / 6
-        self.deg_60 = np.pi / 3
+    def __init__(self, radius: int, clearance: int) -> None:
+        # Declare class constants
+        self.WORLD_SIZE = 200, 300
+        self.DEG_30 = np.pi / 6
+        self.DEG_60 = np.pi / 3
+        self.IMG_NAME = "robot_world.png"
+        self.CHECK_IMG_NAME = "check_img.png"
+        self.PATH_LIST_FILENAME = "pathList.txt"
+        self.SAVE_DIR = "images"
+        self.SAVE_LOC = os.path.join(os.getcwd(), self.SAVE_DIR, self.IMG_NAME)
+        self.CHECK_IMG_LOC = os.path.join(os.getcwd(), self.SAVE_DIR, self.CHECK_IMG_NAME)
+        self.PATH_LIST_LOC = os.path.join(os.getcwd(), "build", self.PATH_LIST_FILENAME)
         # Various class parameters
-        self.height = constants.WORLD_SIZE[0]
-        self.width = constants.WORLD_SIZE[1]
+        self.height = self.WORLD_SIZE[0]
+        self.width = self.WORLD_SIZE[1]
         self.thresh = radius + clearance
         # Get the robot's world
         self.world_img = self.draw_obstacles()
         # Get image to search for obstacles
-        self.check_img = self.erode_image()
+        self.erode_image()
 
-    def draw_circle(self):
+    def draw_circle(self) -> None:
         """
         Draw the circle obstacle on the map-image
+        :param: nothing
         :return: nothing
         """
         # Define parameters of circular obstacles
@@ -78,9 +86,10 @@ class RobotWorld:
                 if (x - a) ** 2 + (y - b) ** 2 <= r ** 2:
                     self.world_img[y][x] = (0, 0, 0)
 
-    def draw_ellipse(self):
+    def draw_ellipse(self) -> None:
         """
         Draw the circle obstacle on the map-image
+        :param: nothing
         :return: nothing
         """
         # Define parameters of elliptical obstacles
@@ -97,9 +106,10 @@ class RobotWorld:
                 if ((x - center_a) / a) ** 2 + ((y - center_b) / b) ** 2 <= 1:
                     self.world_img[y][x] = (0, 0, 0)
 
-    def draw_polygons(self):
+    def draw_polygons(self) -> None:
         """
         Draw the convex polygon, rectangle and rhombus on the map-image
+        :param: nothing
         :return: nothing
         """
         # Coordinates of the convex polygon
@@ -110,10 +120,10 @@ class RobotWorld:
                                   (75, self.height - 120),
                                   (50, self.height - 150)], dtype=np.int32)
         # Coordinates of the rectangle
-        coord_rectangle = np.array([(95 - 75 * np.cos(self.deg_30), self.height - 75 * np.sin(self.deg_30) - 30),
-                                    (95 - 75 * np.cos(self.deg_30) + 10 * np.cos(self.deg_60), self.height
-                                     - 75 * np.sin(self.deg_30) - 10 * np.sin(self.deg_60) - 30),
-                                    (95 + 10 * np.cos(self.deg_60), self.height - 10 * np.sin(self.deg_60) - 30),
+        coord_rectangle = np.array([(95 - 75 * np.cos(self.DEG_30), self.height - 75 * np.sin(self.DEG_30) - 30),
+                                    (95 - 75 * np.cos(self.DEG_30) + 10 * np.cos(self.DEG_60), self.height
+                                     - 75 * np.sin(self.DEG_30) - 10 * np.sin(self.DEG_60) - 30),
+                                    (95 + 10 * np.cos(self.DEG_60), self.height - 10 * np.sin(self.DEG_60) - 30),
                                     (95, self.height - 30)],
                                    dtype=np.int32).reshape((-1, 2))
         # Coordinates of the rhombus
@@ -152,29 +162,15 @@ class RobotWorld:
                 elif y_rhom[0] <= y <= y_rhom[3] and y_rhom[1] <= y <= y_rhom[2]:
                     self.world_img[y][x] = (0, 0, 0)
 
-    def check_node_validity(self, x, y):
-        """
-        Method to check whether point lies within any obstacle
-        :param x: x-coordinate of the current node
-        :param y: y-coordinate of the current node
-        :return: false if point lies within any obstacle
-        """
-        # Check whether the current node lies within the map
-        if x >= self.width or y >= self.height:
-            return False
-        # Check whether the current node lies within any obstacle
-        elif self.check_img[y, x].all() == 0:
-            return False
-
-        return True
-
-    def erode_image(self):
+    def erode_image(self) -> bool:
         """
         Get eroded image to check for obstacles considering the robot radius and clearance
-        :return: image with obstacle space expanded to distance threshold between robot and obstacle
+        :param: nothing
+        :return: Status of file creation
         """
         # Get map with obstacles
         eroded_img = self.world_img.copy()
+        eroded_img = cv2.cvtColor(eroded_img, cv2.COLOR_BGR2GRAY)
         # Erode map image for rigid robot
         if self.thresh:
             kernel_size = (self.thresh * 2) + 1
@@ -185,16 +181,31 @@ class RobotWorld:
                 for x in range(self.width):
                     if (0 <= y < self.thresh or self.width - self.thresh <= x < self.width
                             or 0 <= x < self.thresh or self.height - self.thresh <= y < self.height):
-                        eroded_img[y][x] = (0, 0, 0)
+                        eroded_img[y][x] = 0
 
-        return eroded_img
+        cv2.imwrite(self.CHECK_IMG_LOC, eroded_img)
+        if not os.path.exists(self.CHECK_IMG_LOC):
+            return False
+        return True
+
+    def remove_check_image(self) -> bool:
+        """
+        Remove check image from file system
+        :param: nothing
+        :return: Status of removal
+        """
+        os.remove(self.CHECK_IMG_LOC)
+        if os.path.exists(self.CHECK_IMG_LOC):
+            return False
+        return True
 
     def draw_obstacles(self):
         """
         Draw map using half-plane equations
+        :param: nothing
         :return: map-image with all obstacles
         """
-        self.world_img = cv2.imread('images/robot_world.png')
+        self.world_img = cv2.imread(self.SAVE_LOC)
         if self.world_img is None:
             # Initialize
             self.world_img = np.zeros((self.height, self.width, 3), dtype=np.uint8)
@@ -205,9 +216,62 @@ class RobotWorld:
             self.draw_ellipse()
             self.draw_polygons()
             # Save the world to avoid re-creating at every run
-            save_dir = os.path.join(os.getcwd(), "images")
+            save_dir = os.path.join(os.getcwd(), self.SAVE_DIR)
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
-            cv2.imwrite(os.path.join(save_dir, "robot_world.png"), self.world_img)
+            cv2.imwrite(self.SAVE_LOC, self.world_img)
 
         return self.world_img
+
+    def create_video_animation(self) -> bool:
+        """
+        Show animation of map exploration and path from start to goal
+        :param map_img: 2-d array with information of the map
+        :return: nothing
+        """
+        if os.path.exists(self.PATH_LIST_LOC):
+            print("[DEBUG] Path file FOUND!")
+            print("[INFO] Creating video...")
+            map_img = self.world_img.copy()
+            # Define video-writer of open-cv to record the exploration and final path
+            video_format = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D')
+            video_output = cv2.VideoWriter('exploration' + '.avi', video_format, 10.0,
+                                        (self.WORLD_SIZE[1], self.WORLD_SIZE[0]))
+            # Define various color vectors
+            red = [0, 0, 255]
+            blue = [255, 0, 0]
+            green = [0, 255, 0]
+            grey = [200, 200, 200]
+            # Add text to show heuristic weight
+            # if not self.method:
+            #     cv2.putText(map_img, 'Heuristic Weight: ' + str(constants.WEIGHT_A_STAR), (self.WORLD_SIZE[1] - 100, 20),
+            #                 cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 225))
+            # Show all generated nodes
+            # for y, x in self.generated_nodes:
+            #     map_img[self.WORLD_SIZE[0] - y, x] = grey
+            #     video_output.write(map_img)
+            # Show path
+            # start_node, goal_node = [], []
+            path_nodes = open(self.PATH_LIST_LOC, "r")
+            for line in path_nodes.readlines():
+                node = line.split(",")
+                map_img[self.WORLD_SIZE[0] - int(node[1]), int(node[0])] = blue
+                video_output.write(map_img)
+            # for i in range(len(data) - 1, -1, -1):
+            #     map_img[self.WORLD_SIZE[0] - data[i][0], data[i][1]] = blue
+            #     video_output.write(map_img)
+            # Draw start and goal node to the video frame in the form of filled circle
+            # cv2.circle(map_img, (data[-1][1], self.WORLD_SIZE[0] - data[-1][0]), 2, green, -1)
+            # cv2.circle(map_img, (data[0][1], self.WORLD_SIZE[0] - data[0][0]), 2, red, -1)
+            # Show path for some time after exploration
+            for _ in range(50):
+                video_output.write(map_img)
+            video_output.release()
+            cv2.destroyAllWindows()
+            os.remove(self.PATH_LIST_LOC)
+            if os.path.exists(os.path.join(os.getcwd(), "exploration.avi")):
+                print("[DEBUG] Video creation SUCCESSFUL!")
+                return True
+            print("[DEBUG] Video creation UNSUCCESSFUL!")
+        print("[DEBUG] Path file NOT FOUND!")
+        return False
