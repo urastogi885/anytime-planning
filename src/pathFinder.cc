@@ -28,7 +28,6 @@
  * @brief Implements the PathFinder's class to find a path from start to goal if it exists
  */
 
-#include "actions/actions.h"
 #include "pathFinder/pathFinder.h"
 
 PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, std::string robot_world_loc) {
@@ -44,17 +43,50 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint
 }
 
 bool PathFinder::FindPathToGoal() {
+    if (!(IsNodeValid(robot_start_pos[0], robot_start_pos[1]) && IsNodeValid(robot_goal_pos[0], robot_goal_pos[1]))) {
+        error_logger.Log("Start or goal position is in obstacle space!", kDebug);
+        return false;
+    }
+
+    error_logger.Log("Finding path to goal node...", kDebug);
     std::priority_queue<Node, std::vector<Node>, CompareCostToCome> queue_nodes;
 
-    Node node1(50, 30, 40.6);
-    Node node2(50, 30, 41.6);
-    Node node3(20, 30, 40.6);
+    float costs[2] = {0, -1};
+    queue_nodes.push(Node(robot_start_pos[0], robot_start_pos[1], costs));
 
-    queue_nodes.push(node1);
-    queue_nodes.push(node2);
-    queue_nodes.push(node3);
+    cv::Mat parent_nodes = cv::Mat::zeros(robot_world_size[1], robot_world_size[0], CV_8U);
+    parent_nodes.at<uchar>(robot_start_pos[1], robot_start_pos[0]) = kStartParent;
+    // uint32_t counter = 0;
+    // uint32_t prev = 0;
 
-    return true;
+    while (!queue_nodes.empty()) {
+        Node current_node = queue_nodes.top();
+        queue_nodes.pop();
+        // ++counter;
+        // if (counter - prev == 500) {
+        //     prev = counter;
+        //     error_logger.Log("(" + std::to_string(current_node.x) + ", " + std::to_string(current_node.y) + ", " + std::to_string(current_node.total_cost) + ")", kInfo);
+        // }
+        if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
+            error_logger.Log("Path to goal found!", kDebug);
+            return true;
+        }
+        for (int i = 0; i < actions.kMaxNumActions; ++i) {
+            uint16_t x = actions.GetNextCoord(current_node.x, i);
+            uint16_t y = actions.GetNextCoord(current_node.y, i, 'y');
+
+            if (IsNodeValid(x, y) && (int)parent_nodes.at<uchar>(y, x) == kNoParent) {
+                costs[0] = CostToCome(current_node.cost_to_come, i);
+                costs[1] = CostToGo(x, y, 1) + costs[0];
+                queue_nodes.push(Node(x, y, costs));
+                parent_nodes.at<uchar>(y, x) = kParent;
+            }
+        }
+    }
+
+    error_logger.Log("Path to goal not found!", kDebug);
+
+    return false;
 }
 
 bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {
@@ -75,6 +107,10 @@ float PathFinder::CostToCome(float parent_node_cost, uint8_t action) {
     }
 
     return parent_node_cost + sqrt(2);
+}
+
+float PathFinder::CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon) {
+    return epsilon * sqrt(pow(robot_goal_pos[0] - pos_x, 2) + pow(robot_goal_pos[1] - pos_y, 2));
 }
 
 PathFinder::~PathFinder() {

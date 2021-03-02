@@ -36,6 +36,7 @@
 #include <math.h>
 #include <opencv2/opencv.hpp>
 
+#include "actions/actions.h"
 #include "structures/structures.h"
 #include "errorLogger/errorLogger.h"
 
@@ -45,10 +46,25 @@ class PathFinder {
         uint16_t robot_world_size[2];
         cv::Mat robot_world;
         // Instantiate error-logger
-        ErrorLogger error_logger = ErrorLogger(kDebug);
+        ErrorLogger error_logger = ErrorLogger(kInfo);
+        Actions actions;
 
+        /**
+         * @brief Finds cost to reach a node
+         * @param parent_node_cost cost of the node's parent
+         * @param action action that yields the node
+         * @return cost to reach the node
+         */
         float CostToCome(float parent_node_cost, uint8_t action);
-        float CostToGo(uint16_t pos_x, uint16_t pos_y);
+
+        /**
+         * @brief Finds an estimate of the cost to reach the goal from a node (heuristic)
+         * @param pos_x x-coordinate of the node
+         * @param pos_y y-coordinate of the node
+         * @param epsilon inflation factor; minimum value = 1
+         * @return an estimate of the cost cost to reach the goal
+         */
+        float CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon);
 
     public:
         /**
