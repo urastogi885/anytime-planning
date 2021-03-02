@@ -22,7 +22,7 @@ if __name__ == "__main__":
     robot_world = RobotWorld(robot_params[0], robot_params[1])
     EXPLORER_RUN_CMD = "cd build/ && ./explorer " + (str(start_pos[0]) + " "
                         + str(start_pos[1]) + " " + str(goal_pos[0]) + " "
-                        + str(start_pos[1]) + " " + robot_world.CHECK_IMG_LOC)
+                        + str(goal_pos[1]) + " " + robot_world.CHECK_IMG_LOC)
     # Run the explorer
     os.system(EXPLORER_RUN_CMD)
 

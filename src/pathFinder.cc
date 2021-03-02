@@ -40,7 +40,12 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint
     robot_world = cv::imread(robot_world_loc, CV_LOAD_IMAGE_GRAYSCALE);
     robot_world_size[1] = robot_world.rows;
     robot_world_size[0] = robot_world.cols;
-    parent_nodes = cv::Mat::zeros(robot_world_size[1], robot_world_size[0], CV_64F);
+    parent_nodes = cv::Mat::ones(robot_world_size[1], robot_world_size[0], CV_64FC1);
+    for (int y = 0; y < robot_world_size[1]; ++y) {
+        for (int x = 0; x < robot_world_size[0]; ++x) {
+            parent_nodes.at<double>(y, x) = kNoParent;
+        }
+    }
 }
 
 bool PathFinder::FindPathToGoal() {
@@ -55,7 +60,7 @@ bool PathFinder::FindPathToGoal() {
     float costs[2] = {0, -1};
     queue_nodes.push(Node(robot_start_pos[0], robot_start_pos[1], costs));
 
-    parent_nodes.at<uchar>(robot_start_pos[1], robot_start_pos[0]) = kStartParent;
+    parent_nodes.at<double>(robot_start_pos[1], robot_start_pos[0]) = kStartParent;
 
     while (!queue_nodes.empty()) {
         Node current_node = queue_nodes.top();
@@ -68,18 +73,32 @@ bool PathFinder::FindPathToGoal() {
             uint16_t x = actions.GetNextCoord(current_node.x, i);
             uint16_t y = actions.GetNextCoord(current_node.y, i, 'y');
 
-            if (IsNodeValid(x, y) && (int)parent_nodes.at<uchar>(y, x) == kNoParent) {
+            if (IsNodeValid(x, y) && (int64)parent_nodes.at<double>(y, x) == kNoParent) {
                 costs[0] = CostToCome(current_node.cost_to_come, i);
                 costs[1] = CostToGo(x, y, 1) + costs[0];
                 queue_nodes.push(Node(x, y, costs));
-                parent_nodes.at<uchar>(y, x) = RavelIndex(x, y);
+                parent_nodes.at<double>(y, x) = RavelIndex(current_node.x, current_node.y);
             }
         }
     }
 
-    error_logger.Log("Path to goal not found!", kDebug);
+    error_logger.Log("Path to goal NOT found!", kDebug);
 
     return false;
+}
+
+bool PathFinder::GeneratePathList() {
+    std::vector<std::pair<uint16_t, uint16_t>> path_nodes;
+    std::pair<uint16_t, uint16_t> last_node = std::make_pair(robot_goal_pos[0], robot_goal_pos[1]);
+    path_nodes.push_back(last_node);
+    std::cout << last_node.first << ", " << last_node.second << std::endl;
+
+    while ((int64)parent_nodes.at<double>(last_node.second, last_node.first) != kStartParent) {
+        last_node = UnravelIndex((int64)parent_nodes.at<double>(last_node.second, last_node.first));
+        std::cout << last_node.first << ", " << last_node.second << std::endl;
+        path_nodes.push_back(last_node);
+    }
+    return true;
 }
 
 bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {
@@ -111,7 +130,7 @@ uint32_t PathFinder::RavelIndex(uint16_t pos_x, uint16_t pos_y) {
 }
 
 std::pair<uint16_t, uint16_t> PathFinder::UnravelIndex(uint32_t identifier) {
-    return std::make_pair((int)identifier/robot_world_size[0], (int)identifier%robot_world_size[0]);
+    return std::make_pair((int)identifier%robot_world_size[0], (int)identifier/robot_world_size[0]);
 }
 
 PathFinder::~PathFinder() {
