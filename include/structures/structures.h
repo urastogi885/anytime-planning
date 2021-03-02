@@ -52,12 +52,18 @@ enum LogLevel {
     kFatal
 };
 
+enum ParentIdentifier {
+    kNoParent = 0,  // Node does not have a parent yet
+    kParent,        // Node has a parent
+    kStartParent    // Node is the start node
+};
+
 struct Node {
     uint16_t x, y;
-    float cost_to_come;
+    float cost_to_come, total_cost;
 
-    Node(uint16_t x, uint16_t y, float cost)
-        : x(x), y(y), cost_to_come(cost)
+    Node(uint16_t x, uint16_t y, float cost[2])
+        : x(x), y(y), cost_to_come(cost[0]), total_cost(cost[1])
     {
     }
 };
@@ -66,7 +72,7 @@ struct CompareCostToCome {
     bool operator()(Node const& a, Node const& b) const{
 
         // reverse sort puts the lowest value at the top    
-        return a.cost_to_come > b.cost_to_come;
+        return a.total_cost > b.total_cost;
     }
 };
 
