@@ -13,10 +13,6 @@ addons:
     - cmake
     - libopencv-dev
 
-
-before_install:
-  - sudo apt-get update
-
 install:
   - pip3 install numpy opencv-python
 
