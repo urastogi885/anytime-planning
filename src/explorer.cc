@@ -28,19 +28,18 @@
  * @brief Main file to run the entire project
  */
 
-#include "actions/actions.h"
+#include "errorLogger/errorLogger.h"
 #include "pathFinder/pathFinder.h"
 
 /**
  * @brief Main entry point of the project
  */
 int main(int argc, char ** argv) {
-    Actions actions;
-    PathFinder path_finder = PathFinder(50, 30, 150, 150, std::string(argv[1]));
-
-    if (!(path_finder.IsNodeValid(50, 30) && path_finder.IsNodeValid(150, 150))) {
+    if (argc != 6) {
+        ErrorLogger(kInfo).Log("Insufficient arguments provided!", kFatal);
         return -1;
     }
+    PathFinder path_finder = PathFinder(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), std::string(argv[5]));
 
     path_finder.FindPathToGoal();
 
