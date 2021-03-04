@@ -58,6 +58,7 @@ class PathFinder {
         std::unordered_map<uint32_t, double> cost_to_come;
         std::unordered_map<uint32_t, double> final_cost;
         std::priority_queue<Node, std::vector<Node>, CompareTotalCost> open_nodes;
+        std::unordered_map<uint32_t, bool> open_nodes_check_map;
         // Class objects
         ConsoleLogger logger = ConsoleLogger(kInfo);
         Actions actions;

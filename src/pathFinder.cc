@@ -50,6 +50,7 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
     final_cost[start_node_index] = CostToGo(robot_start_pos[0], robot_start_pos[1], 1);
     // Initialize open nodes
     open_nodes.push(Node(robot_start_pos[0], robot_start_pos[1], final_cost[start_node_index]));
+    open_nodes_check_map[start_node_index] = true;
 
 }
 
@@ -91,6 +92,7 @@ bool PathFinder::Astar() {
         // Extract the node with minimum cost
         Node current_node = open_nodes.top();
         open_nodes.pop();
+        open_nodes_check_map[RavelIndex(current_node.x, current_node.y)] = false;
 
         // Exit if goal is found
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
@@ -111,10 +113,10 @@ bool PathFinder::Astar() {
                 parent_nodes[node_index] = RavelIndex(current_node.x, current_node.y);
                 cost_to_come[node_index] = temp_cost_to_come;
                 final_cost[node_index] = temp_cost_to_come + CostToGo(x, y, 1);
-                // if ((open_nodes | node_index) == INFINITY) {
-                //     open_nodes[node_index] = final_cost[node_index];
-                // }
-                open_nodes.push(Node(x, y, final_cost[node_index]));
+                if (!open_nodes_check_map[node_index]) {
+                    open_nodes.push(Node(x, y, final_cost[node_index]));
+                    open_nodes_check_map[node_index] = true;
+                }
             }
         }
     }
