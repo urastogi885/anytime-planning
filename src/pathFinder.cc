@@ -47,7 +47,7 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
 
 bool PathFinder::FindPathToGoal() {
     if (!(IsNodeValid(robot_start_pos[0], robot_start_pos[1]) && IsNodeValid(robot_goal_pos[0], robot_goal_pos[1]))) {
-        error_logger.Log("Start or goal position is in obstacle space!", kDebug);
+        logger.Log("Start or goal position is in obstacle space!", kDebug);
         return false;
     }
 
@@ -63,7 +63,7 @@ bool PathFinder::FindPathToGoal() {
     // std::unordered_map<uint32_t, double> open_nodes;
     // open_nodes[start_node_index] = final_cost[start_node_index];
 
-    error_logger.Log("Finding path to goal node...", kInfo);
+    logger.Log("Finding path to goal node...", kInfo);
     while (!open_nodes.empty()) {
         // Extract the node with minimum cost
         Node current_node = open_nodes.top();
@@ -71,7 +71,7 @@ bool PathFinder::FindPathToGoal() {
 
         // Exit if goal is found
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
-            error_logger.Log("Path to goal FOUND!", kDebug);
+            logger.Log("Path to goal FOUND!", kDebug);
             return true;
         }
 
@@ -96,7 +96,7 @@ bool PathFinder::FindPathToGoal() {
         }
     }
 
-    error_logger.Log("Path to goal NOT FOUND!", kDebug);
+    logger.Log("Path to goal NOT FOUND!", kDebug);
 
     return false;
 }

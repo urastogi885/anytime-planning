@@ -55,6 +55,13 @@ enum LogLevel {
     kFatal
 };
 
+enum Methods {
+    kAstar = 0,
+    kAtaStar,
+    kAraStar,
+    kAnaStar
+};
+
 struct Node {
     uint16_t x, y;
     double final_cost;

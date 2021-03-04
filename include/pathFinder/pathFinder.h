@@ -41,7 +41,7 @@
 // Other headers
 #include "actions/actions.h"
 #include "structures/structures.h"
-#include "errorLogger/errorLogger.h"
+#include "consoleLogger/consoleLogger.h"
 
 class PathFinder {
     private:
@@ -58,7 +58,7 @@ class PathFinder {
         std::unordered_map<uint32_t, double> cost_to_come;
         std::unordered_map<uint32_t, double> final_cost;
         // Class objects
-        ErrorLogger error_logger = ErrorLogger(kInfo);
+        ConsoleLogger logger = ConsoleLogger(kInfo);
         Actions actions;
 
         /**

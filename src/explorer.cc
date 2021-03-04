@@ -28,7 +28,7 @@
  * @brief Main file to run the entire project
  */
 
-#include "errorLogger/errorLogger.h"
+#include "consoleLogger/consoleLogger.h"
 #include "pathFinder/pathFinder.h"
 
 /**
@@ -36,9 +36,10 @@
  */
 int main(int argc, char ** argv) {
     if (argc != 6) {
-        ErrorLogger(kInfo).Log("Insufficient arguments provided!", kFatal);
+        ConsoleLogger(kInfo).Log("Insufficient arguments provided!", kFatal);
         return -1;
     }
+
     PathFinder path_finder = PathFinder(atoi(argv[1]), atoi(argv[2]),
                                 atoi(argv[3]), atoi(argv[4]), argv[5]);
 
