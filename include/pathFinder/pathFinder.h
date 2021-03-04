@@ -36,6 +36,8 @@
 // C++ headers
 #include <cstdint>
 #include <utility>
+#include <vector>
+#include <queue>
 #include <unordered_map>
 #include <opencv2/opencv.hpp>
 // Other headers

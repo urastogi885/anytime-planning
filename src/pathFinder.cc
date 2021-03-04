@@ -51,21 +51,30 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
     // Initialize open nodes
     open_nodes.push(Node(robot_start_pos[0], robot_start_pos[1], final_cost[start_node_index]));
     open_nodes_check_map[start_node_index] = true;
-
 }
 
 bool PathFinder::FindPathToGoal(uint8_t method) {
-    switch (method)
-    {
+    switch (method) {
     case kAstar:
         logger.Log("Finding path to goal using A*...", kInfo);
         return Astar();
-    default:
-        break;
-    }
 
-    logger.Log("Path to goal NOT FOUND!", kDebug);
-    return false;
+    case kAtaStar:
+        logger.Log("Finding path to goal using ATA*...", kInfo);
+        return AtaStar();
+
+    case kAraStar:
+        logger.Log("Finding path to goal using ARA*...", kInfo);
+        return AraStar();
+
+    case kAnaStar:
+        logger.Log("Finding path to goal using ANA*...", kInfo);
+        return AnaStar();
+
+    default:
+        logger.Log("INVALID method!", kFatal);
+        return false;
+    }
 }
 
 void PathFinder::GeneratePathList() {
@@ -121,6 +130,22 @@ bool PathFinder::Astar() {
         }
     }
 
+    logger.Log("Path to goal NOT FOUND!", kDebug);
+    return false;
+}
+
+bool PathFinder::AtaStar() {
+    logger.Log("Method is UNDER DEVELOPMENT! Use some other method.", kInfo);
+    return false;
+}
+
+bool PathFinder::AraStar() {
+    logger.Log("Method is UNDER DEVELOPMENT! Use some other method.", kInfo);
+    return false;
+}
+
+bool PathFinder::AnaStar() {
+    logger.Log("Method is UNDER DEVELOPMENT! Use some other method.", kInfo);
     return false;
 }
 
