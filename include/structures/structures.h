@@ -31,9 +31,11 @@
 #ifndef INCLUDE_STRUCTURES_STRUCTURES_H_
 #define INCLUDE_STRUCTURES_STRUCTURES_H_
 
+// C headers
+#include <math.h>
 // C++ headers
 #include <cstdint>
-#include <vector>
+#include <unordered_map>
 
 enum Action {
     kUp = 0,
@@ -55,18 +57,30 @@ enum LogLevel {
 
 struct Node {
     uint16_t x, y;
-    float cost_to_come, total_cost;
+    double final_cost;
 
-    Node(uint16_t x, uint16_t y, float cost[2])
-        : x(x), y(y), cost_to_come(cost[0]), total_cost(cost[1]) {
+    Node(uint16_t x, uint16_t y, double cost)
+        : x(x), y(y), final_cost(cost) {
     }
 };
 
-struct CompareCostToCome {
+struct CompareTotalCost {
     bool operator()(Node const& a, Node const& b) const{
-        // reverse sort puts the lowest value at the top
-        return a.total_cost > b.total_cost;
+        // reverse sort to put the lowest value at the top
+        return a.final_cost > b.final_cost;
     }
 };
+
+// Return infinity as default value for unordered maps
+template<typename K, typename M>
+M& operator|(std::unordered_map<K, M>& umap, const K& key) {
+    static M defval{INFINITY};
+
+    if (!umap.count(key)) {
+        return defval;
+    }
+
+    return umap[key];
+}
 
 #endif  //  INCLUDE_STRUCTURES_STRUCTURES_H_

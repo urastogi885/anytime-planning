@@ -35,8 +35,8 @@
 #include <math.h>
 // C++ headers
 #include <cstdint>
-#include <string>
 #include <utility>
+#include <unordered_map>
 #include <opencv2/opencv.hpp>
 // Other headers
 #include "actions/actions.h"
@@ -48,13 +48,15 @@ class PathFinder {
         // Constants
         const int8_t kNoParent = -1;
         const int8_t kStartParent = -2;
-        const std::string kPathListFileName = "pathList.txt";
+        const char kPathListFileName[13] = "pathList.txt";
         // Robot world
         uint16_t robot_start_pos[2], robot_goal_pos[2];
         uint16_t robot_world_size[2];
         cv::Mat robot_world;
         // Nodes
-        cv::Mat parent_nodes;
+        std::unordered_map<uint32_t, int64_t> parent_nodes;
+        std::unordered_map<uint32_t, double> cost_to_come;
+        std::unordered_map<uint32_t, double> final_cost;
         // Class objects
         ErrorLogger error_logger = ErrorLogger(kInfo);
         Actions actions;
@@ -65,7 +67,7 @@ class PathFinder {
          * @param action action that yields the node
          * @return cost to reach the node
          */
-        float CostToCome(float parent_node_cost, uint8_t action);
+        double CostToCome(double parent_node_cost, uint8_t action);
 
         /**
          * @brief Finds an estimate of the cost to reach the goal from a node (heuristic)
@@ -74,7 +76,7 @@ class PathFinder {
          * @param epsilon inflation factor; minimum value = 1
          * @return an estimate of the cost cost to reach the goal
          */
-        float CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon);
+        double CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon);
 
         /**
          * @brief Convert an element location into a unique integer
@@ -101,7 +103,7 @@ class PathFinder {
          * @param robot_world_loc Location of robot's world image
          * @return none
          */
-        PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, std::string robot_world_loc);
+        PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, const char * robot_world_loc);
 
         /**
          * @brief Destructor for the class

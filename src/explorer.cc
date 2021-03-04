@@ -40,7 +40,7 @@ int main(int argc, char ** argv) {
         return -1;
     }
     PathFinder path_finder = PathFinder(atoi(argv[1]), atoi(argv[2]),
-                                atoi(argv[3]), atoi(argv[4]), std::string(argv[5]));
+                                atoi(argv[3]), atoi(argv[4]), argv[5]);
 
     if (path_finder.FindPathToGoal()) {
         path_finder.GeneratePathList();
