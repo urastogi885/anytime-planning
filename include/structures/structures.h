@@ -56,10 +56,17 @@ enum LogLevel {
 };
 
 enum Methods {
-    kAstar = 0,
-    kAtaStar,
-    kAraStar,
-    kAnaStar
+    kAstar = 0,     // Use A* method to find path
+    kAtaStar,       // Use Anytime A* method to find path
+    kAraStar,       // Use Anytime Repairing A* method to find path
+    kAnaStar        // Use Anytime Nonparametric A* method to find path
+};
+
+enum ExitCodes {
+    kSuccess = 0,       // Path found from start to goal
+    kInsuffArgs,        // Insufficient arguments provided
+    kObtsacleSpace,     // Start or goal lie in obatcle space
+    kPathNotExist       // Path does exist from start to goal
 };
 
 struct Node {

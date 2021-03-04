@@ -57,6 +57,7 @@ class PathFinder {
         std::unordered_map<uint32_t, int64_t> parent_nodes;
         std::unordered_map<uint32_t, double> cost_to_come;
         std::unordered_map<uint32_t, double> final_cost;
+        std::priority_queue<Node, std::vector<Node>, CompareTotalCost> open_nodes;
         // Class objects
         ConsoleLogger logger = ConsoleLogger(kInfo);
         Actions actions;
@@ -121,11 +122,11 @@ class PathFinder {
         bool IsNodeValid(uint16_t pos_x, uint16_t pos_y);
 
         /**
-         * @brief Finds a path from start to goal if it exists
-         * @param none
-         * @return true if path if found
+         * @brief Calls appropriate path finding method
+         * @param method Specifies the method being used to find path to goal
+         * @return true if path is found
          */
-        bool FindPathToGoal();
+        bool FindPathToGoal(uint8_t method = kAstar);
 
         /**
          * @brief Generates a text file listing the nodes in the path
@@ -133,6 +134,34 @@ class PathFinder {
          * @return nothing
          */
         void GeneratePathList();
+
+        /**
+         * @brief Finds a path from start to goal if it exists using A*
+         * @param none
+         * @return nothing
+         */
+        bool Astar();
+
+        /**
+         * @brief Finds a path from start to goal if it exists using ATA*
+         * @param none
+         * @return nothing
+         */
+        bool AtaStar();
+
+        /**
+         * @brief Finds a path from start to goal if it exists using ARA*
+         * @param none
+         * @return nothing
+         */
+        bool AraStar();
+
+        /**
+         * @brief Finds a path from start to goal if it exists using ANA*
+         * @param none
+         * @return nothing
+         */
+        bool AnaStar();
 };
 
 #endif  // INCLUDE_PATHFINDER_PATHFINDER_H_
