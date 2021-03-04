@@ -28,6 +28,7 @@
  * @brief Main file to run the entire project
  */
 
+#include "structures/structures.h"
 #include "consoleLogger/consoleLogger.h"
 #include "pathFinder/pathFinder.h"
 
@@ -35,17 +36,23 @@
  * @brief Main entry point of the project
  */
 int main(int argc, char ** argv) {
-    if (argc != 6) {
+    if (argc <= 6) {
         ConsoleLogger(kInfo).Log("Insufficient arguments provided!", kFatal);
-        return -1;
+        return kInsuffArgs;
     }
 
     PathFinder path_finder = PathFinder(atoi(argv[1]), atoi(argv[2]),
-                                atoi(argv[3]), atoi(argv[4]), argv[5]);
+                                atoi(argv[3]), atoi(argv[4]), argv[6]);
 
-    if (path_finder.FindPathToGoal()) {
+    if (!(path_finder.IsNodeValid(atoi(argv[1]), atoi(argv[2])) &&
+            path_finder.IsNodeValid(atoi(argv[3]), atoi(argv[4])))) {
+        ConsoleLogger(kInfo).Log("Start or goal position is in obstacle space!", kDebug);
+        return kObtsacleSpace;
+    }
+
+    if (path_finder.FindPathToGoal(atoi(argv[5]))) {
         path_finder.GeneratePathList();
     }
 
-    return 0;
+    return kSuccess;
 }

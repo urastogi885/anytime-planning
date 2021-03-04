@@ -43,27 +43,50 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
     robot_world = cv::imread(robot_world_loc, CV_LOAD_IMAGE_GRAYSCALE);
     robot_world_size[1] = robot_world.rows;
     robot_world_size[0] = robot_world.cols;
-}
-
-bool PathFinder::FindPathToGoal() {
-    if (!(IsNodeValid(robot_start_pos[0], robot_start_pos[1]) && IsNodeValid(robot_goal_pos[0], robot_goal_pos[1]))) {
-        logger.Log("Start or goal position is in obstacle space!", kDebug);
-        return false;
-    }
-
     // Initialize parent nodes and cost maps
     uint32_t start_node_index = RavelIndex(robot_start_pos[0], robot_start_pos[1]);
     parent_nodes[start_node_index] = kStartParent;
     cost_to_come[start_node_index] = 0;
     final_cost[start_node_index] = CostToGo(robot_start_pos[0], robot_start_pos[1], 1);
-
-    // Initialize open nodes maps
-    std::priority_queue<Node, std::vector<Node>, CompareTotalCost> open_nodes;
+    // Initialize open nodes
     open_nodes.push(Node(robot_start_pos[0], robot_start_pos[1], final_cost[start_node_index]));
-    // std::unordered_map<uint32_t, double> open_nodes;
-    // open_nodes[start_node_index] = final_cost[start_node_index];
 
-    logger.Log("Finding path to goal node...", kInfo);
+}
+
+bool PathFinder::FindPathToGoal(uint8_t method) {
+    switch (method)
+    {
+    case kAstar:
+        logger.Log("Finding path to goal using A*...", kInfo);
+        return Astar();
+    default:
+        break;
+    }
+
+    logger.Log("Path to goal NOT FOUND!", kDebug);
+    return false;
+}
+
+void PathFinder::GeneratePathList() {
+    std::ofstream path_list;
+    path_list.open(kPathListFileName, std::ios::out | std::ios::trunc);
+
+    std::pair<uint16_t, uint16_t> last_node = std::make_pair(robot_goal_pos[0], robot_goal_pos[1]);
+    path_list << last_node.first << ", " << last_node.second << std::endl;
+
+    // Backtrack the start node
+    while (parent_nodes[RavelIndex(last_node.first, last_node.second)] != kStartParent) {
+        last_node = UnravelIndex(parent_nodes[RavelIndex(last_node.first, last_node.second)]);
+        path_list << last_node.first << ", " << last_node.second << std::endl;
+    }
+
+    path_list.close();
+
+    return;
+}
+
+bool PathFinder::Astar() {
+    // Try finding path to goal until the queue goes empty
     while (!open_nodes.empty()) {
         // Extract the node with minimum cost
         Node current_node = open_nodes.top();
@@ -96,27 +119,7 @@ bool PathFinder::FindPathToGoal() {
         }
     }
 
-    logger.Log("Path to goal NOT FOUND!", kDebug);
-
     return false;
-}
-
-void PathFinder::GeneratePathList() {
-    std::ofstream path_list;
-    path_list.open(kPathListFileName, std::ios::out | std::ios::trunc);
-
-    std::pair<uint16_t, uint16_t> last_node = std::make_pair(robot_goal_pos[0], robot_goal_pos[1]);
-    path_list << last_node.first << ", " << last_node.second << std::endl;
-
-    // Backtrack the start node
-    while (parent_nodes[RavelIndex(last_node.first, last_node.second)] != kStartParent) {
-        last_node = UnravelIndex(parent_nodes[RavelIndex(last_node.first, last_node.second)]);
-        path_list << last_node.first << ", " << last_node.second << std::endl;
-    }
-
-    path_list.close();
-
-    return;
 }
 
 bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {
