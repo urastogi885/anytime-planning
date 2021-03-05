@@ -1,0 +1,21 @@
+# Set OS to linux
+os: linux
+dist: bionic
+
+language: python
+
+python: 3.6
+
+addons:
+  apt:
+    packages:
+    - build-essential
+    - cmake
+    - libopencv-dev
+
+install:
+  - pip3 install numpy opencv-python
+
+script:
+  - bash explorer.sh
+  - python main.py 50,30 150,150 3,1 0 1
