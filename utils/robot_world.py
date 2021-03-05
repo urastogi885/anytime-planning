@@ -53,7 +53,7 @@ class RobotWorld:
         self.DEG_60 = np.pi / 3
         self.IMG_NAME = "robot_world.png"
         self.CHECK_IMG_NAME = "check_img.png"
-        self.PATH_LIST_FILENAME = "pathList.txt"
+        self.PATH_LIST_FILENAME = "pathList1.txt"
         self.SAVE_DIR = "images"
         self.SAVE_LOC = os.path.join(os.getcwd(), self.SAVE_DIR, self.IMG_NAME)
         self.CHECK_IMG_LOC = os.path.join(os.getcwd(), self.SAVE_DIR, self.CHECK_IMG_NAME)

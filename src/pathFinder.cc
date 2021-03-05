@@ -45,11 +45,9 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
     robot_world_size[0] = robot_world.cols;
     // Initialize parent nodes and cost maps
     uint32_t start_node_index = RavelIndex(robot_start_pos[0], robot_start_pos[1]);
-    // parent_nodes[start_node_index] = kStartParent;
+    parent_nodes[start_node_index] = kStartParent;
     cost_to_come[start_node_index] = 0;
     final_cost[start_node_index] = CostToGo(robot_start_pos[0], robot_start_pos[1], 1);
-    // Initialize open nodes
-    open_nodes.push(Node(robot_start_pos[0], robot_start_pos[1], final_cost[start_node_index]));
     open_nodes_check_map[start_node_index] = true;
 }
 
@@ -77,9 +75,10 @@ bool PathFinder::FindPathToGoal(uint8_t method) {
     }
 }
 
-void PathFinder::GeneratePathList(std::unordered_map<uint32_t, int64_t> &path_nodes) {
+void PathFinder::GeneratePathList(std::unordered_map<uint32_t, int64_t> path_nodes, uint32_t list_index) {
+    std::string file_name = "pathList" + std::to_string(list_index) + ".txt";
     std::ofstream path_list;
-    path_list.open(kPathListFileName, std::ios::out | std::ios::trunc);
+    path_list.open(file_name, std::ios::out | std::ios::trunc);
 
     std::pair<uint16_t, uint16_t> last_node = std::make_pair(robot_goal_pos[0], robot_goal_pos[1]);
     path_list << last_node.first << ", " << last_node.second << std::endl;
@@ -96,10 +95,10 @@ void PathFinder::GeneratePathList(std::unordered_map<uint32_t, int64_t> &path_no
 }
 
 bool PathFinder::Astar() {
-    // Initialize a map to store parent nodes
-    std::unordered_map<uint32_t, int64_t> parent_nodes;
-    parent_nodes[RavelIndex(robot_start_pos[0], robot_start_pos[1])] = kStartParent;
-
+    // Initialize open nodes
+    std::priority_queue<Node, std::vector<Node>, CompareTotalCost> open_nodes;
+    open_nodes.push(Node(robot_start_pos[0], robot_start_pos[1],
+                        final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])]));
     // Try finding path to goal until the queue goes empty
     while (!open_nodes.empty()) {
         // Extract the node with minimum cost
@@ -110,7 +109,7 @@ bool PathFinder::Astar() {
         // Exit if goal is found
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
             logger.Log("Path to goal FOUND!", kDebug);
-            GeneratePathList(parent_nodes);
+            GeneratePathList(parent_nodes, 1);
             return true;
         }
 
@@ -141,6 +140,72 @@ bool PathFinder::Astar() {
 
 bool PathFinder::AtaStar() {
     logger.Log("Method is UNDER DEVELOPMENT! Use some other method.", kInfo);
+
+    // Initialize bound and output counter
+    double bound = INFINITY;
+    uint32_t output_count = 0;
+
+    // Initialize open nodes
+    std::vector<Node> open_nodes;
+    open_nodes.push_back(Node(robot_start_pos[0], robot_start_pos[1],
+                            final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])]));
+
+    // Initialize a map to store closed nodes
+    std::unordered_map<uint32_t, int64_t> closed_nodes;
+    closed_nodes[RavelIndex(robot_start_pos[0], robot_start_pos[1])] = kStartParent;
+
+    // Try finding path to goal until the queue goes empty
+    while (!open_nodes.empty()) {
+        // Extract the node with minimum cost
+        Node current_node = open_nodes.front();
+        open_nodes.erase(open_nodes.begin());
+        uint32_t current_node_index = RavelIndex(current_node.x, current_node.y);
+        open_nodes_check_map[current_node_index] = false;
+
+        // Add extracted node to the list of closed nodes
+        if (!(current_node.x == robot_start_pos[0] && current_node.y == robot_start_pos[1])) {
+            closed_nodes[current_node_index] = parent_nodes[current_node_index];
+        }
+
+        // Exit if goal is found
+        if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
+            logger.Log("Path to goal FOUND!", kDebug);
+            bound = cost_to_come[current_node_index] + CostToGo(current_node.x, current_node.y, 1);
+            GeneratePathList(closed_nodes, ++output_count);
+            // TODO: Add a for loop (Line 10) from the algorithm
+            return true;
+        }
+
+        // Generate child nodes
+        for (int i = 0; i < actions.kMaxNumActions; ++i) {
+            uint16_t x = actions.GetNextCoord(current_node.x, i);
+            uint16_t y = actions.GetNextCoord(current_node.y, i, 'y');
+
+            double temp_cost_to_come = CostToCome((cost_to_come | current_node_index), i);
+
+            // Make sure node is not in obstacle space and it pbeys the bound
+            if (IsNodeValid(x, y) && temp_cost_to_come + CostToGo(x, y, 1) < bound) {
+                uint32_t node_index = RavelIndex(x, y);
+                // Make sure node is not in obstacle space and it is better then the previous one
+                if ((!open_nodes_check_map[node_index] && cost_to_come.find(node_index) == cost_to_come.end())
+                        || temp_cost_to_come <  (cost_to_come | node_index)) {
+                    // Update various costs and nodes
+                    parent_nodes[node_index] = current_node_index;
+                    cost_to_come[node_index] = temp_cost_to_come;
+                    final_cost[node_index] = temp_cost_to_come + CostToGo(x, y, 1);
+                    open_nodes.push_back(Node(x, y, final_cost[node_index]));
+
+                    // Remove node from closed nodes if it exists in there
+                    if (closed_nodes[node_index] == kNoParent || closed_nodes.find(node_index) == closed_nodes.end()) {
+                        closed_nodes[node_index] = kNoParent;
+                    }
+                }
+            }
+            // Get node with minimum cost n top
+            std::make_heap(open_nodes.begin(), open_nodes.end(), CompareTotalCost());
+        }
+    }
+
     return false;
 }
 

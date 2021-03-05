@@ -56,9 +56,9 @@ class PathFinder {
         uint16_t robot_world_size[2];
         cv::Mat robot_world;
         // Nodes and costs
+        std::unordered_map<uint32_t, int64_t> parent_nodes;
         std::unordered_map<uint32_t, double> cost_to_come;
         std::unordered_map<uint32_t, double> final_cost;
-        std::priority_queue<Node, std::vector<Node>, CompareTotalCost> open_nodes;
         std::unordered_map<uint32_t, bool> open_nodes_check_map;
         // Class objects
         ConsoleLogger logger = ConsoleLogger(kInfo);
@@ -135,7 +135,7 @@ class PathFinder {
          * @param path_nodes A map of nodes to find path to goal
          * @return nothing
          */
-        void GeneratePathList(std::unordered_map<uint32_t, int64_t> &path_nodes);
+        void GeneratePathList(std::unordered_map<uint32_t, int64_t> path_nodes, uint32_t list_index);
 
         /**
          * @brief Finds a path from start to goal if it exists using A*
