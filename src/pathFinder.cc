@@ -76,7 +76,7 @@ bool PathFinder::FindPathToGoal(uint8_t method) {
 }
 
 void PathFinder::GeneratePathList(std::unordered_map<uint32_t, int64_t> path_nodes, uint32_t list_index) {
-    std::string file_name = "pathList" + std::to_string(list_index) + ".txt";
+    std::string file_name = "path/pathList_" + std::to_string(list_index) + "_.txt";
     std::ofstream path_list;
     path_list.open(file_name, std::ios::out | std::ios::trunc);
 
@@ -90,6 +90,7 @@ void PathFinder::GeneratePathList(std::unordered_map<uint32_t, int64_t> path_nod
     }
 
     path_list.close();
+    logger.Log("Path list GENERATED!", kDebug);
 
     return;
 }
@@ -141,9 +142,11 @@ bool PathFinder::Astar() {
 bool PathFinder::AtaStar() {
     logger.Log("Method is UNDER DEVELOPMENT! Use some other method.", kInfo);
 
-    // Initialize bound and output counter
+    // Initialize bound, inflation factor, and output counter
     double bound = INFINITY;
+    const float kEpsilon = 5.0;
     uint32_t output_count = 0;
+    bool path_found = false;
 
     // Initialize open nodes
     std::vector<Node> open_nodes;
@@ -169,14 +172,35 @@ bool PathFinder::AtaStar() {
 
         // Exit if goal is found
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
+            path_found = true;
             logger.Log("Path to goal FOUND!", kDebug);
+
+            // Update the bound and generate path text file
             bound = cost_to_come[current_node_index] + CostToGo(current_node.x, current_node.y, 1);
             GeneratePathList(closed_nodes, ++output_count);
-            // TODO: Add a for loop (Line 10) from the algorithm
-            return true;
+
+            // Prune the open nodes list
+            logger.Log("Pruning open nodes list...", kInfo);
+            for (auto it = std::begin(open_nodes); it != std::end(open_nodes); ++it) {
+                Node node = *it;
+                if (cost_to_come[RavelIndex(node.x, node.y)] + CostToGo(node.x, node.y, 1) >= bound) {
+                    open_nodes.erase(it);
+                    open_nodes_check_map[RavelIndex(node.x, node.y)] = false;
+
+                    // No more pruning possible
+                    if (open_nodes.empty()) {
+                        logger.Log("Open nodes list is EMPTY!", kWarn);
+                        break;
+                    }
+                }
+            }
+            // If vector becomes empty during pruning exit
+            if (open_nodes.empty()) {
+                break;
+            }
         }
 
-        // Generate child nodes
+        // Get neighbors to the current node
         for (int i = 0; i < actions.kMaxNumActions; ++i) {
             uint16_t x = actions.GetNextCoord(current_node.x, i);
             uint16_t y = actions.GetNextCoord(current_node.y, i, 'y');
@@ -192,7 +216,7 @@ bool PathFinder::AtaStar() {
                     // Update various costs and nodes
                     parent_nodes[node_index] = current_node_index;
                     cost_to_come[node_index] = temp_cost_to_come;
-                    final_cost[node_index] = temp_cost_to_come + CostToGo(x, y, 1);
+                    final_cost[node_index] = temp_cost_to_come + CostToGo(x, y, kEpsilon);
                     open_nodes.push_back(Node(x, y, final_cost[node_index]));
 
                     // Remove node from closed nodes if it exists in there
@@ -206,7 +230,12 @@ bool PathFinder::AtaStar() {
         }
     }
 
-    return false;
+    // Log that path was not found
+    if (!path_found) {
+        logger.Log("Path to goal NOT FOUND!", kDebug);
+    }
+
+    return path_found;
 }
 
 bool PathFinder::AraStar() {
