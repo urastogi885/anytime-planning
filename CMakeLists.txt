@@ -11,6 +11,6 @@ include_directories(
 )
 
 ## Add executables
-add_executable(explorer src/explorer.cc src/pathFinder.cc src/actions.cc src/errorLogger.cc)
+add_executable(explorer src/explorer.cc src/pathFinder.cc src/actions.cc src/consoleLogger.cc)
 find_package( OpenCV REQUIRED )
 target_link_libraries( explorer ${OpenCV_LIBS} )

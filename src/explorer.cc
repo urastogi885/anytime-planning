@@ -28,23 +28,32 @@
  * @brief Main file to run the entire project
  */
 
-#include "errorLogger/errorLogger.h"
+#include "structures/structures.h"
+#include "consoleLogger/consoleLogger.h"
 #include "pathFinder/pathFinder.h"
 
 /**
  * @brief Main entry point of the project
  */
 int main(int argc, char ** argv) {
-    if (argc != 6) {
-        ErrorLogger(kInfo).Log("Insufficient arguments provided!", kFatal);
-        return -1;
+    if (argc <= 6) {
+        ConsoleLogger(kInfo).Log("Insufficient arguments provided!", kFatal);
+        return kInsuffArgs;
     }
+
     PathFinder path_finder = PathFinder(atoi(argv[1]), atoi(argv[2]),
-                                atoi(argv[3]), atoi(argv[4]), std::string(argv[5]));
+                                atoi(argv[3]), atoi(argv[4]), argv[7]);
 
-    if (path_finder.FindPathToGoal()) {
-        path_finder.GeneratePathList();
+    if (!(path_finder.IsNodeValid(atoi(argv[1]), atoi(argv[2])) &&
+            path_finder.IsNodeValid(atoi(argv[3]), atoi(argv[4])))) {
+        ConsoleLogger(kInfo).Log("Start or goal position is in obstacle space!", kDebug);
+        return kObtsacleSpace;
     }
 
-    return 0;
+    float inflation_factor = std::stof(std::string(argv[6]));
+    if (path_finder.FindPathToGoal(atoi(argv[5]), inflation_factor)) {
+        return kSuccess;
+    }
+
+    return kPathNotExist;
 }

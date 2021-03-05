@@ -23,23 +23,45 @@
  */
 
 /**
- * @file errorLogger.cc
+ * @file errorLogger.h
  * @author Umang Rastogi
- * @brief Implements the ErrorLogger's class to find a path from start to goal if it exists
+ * @brief Defines the ErrorLogger's class to return coordinates of the next node
  */
 
-#include <iostream>
-#include "errorLogger/errorLogger.h"
+#ifndef INCLUDE_CONSOLELOGGER_CONSOLELOGGER_H_
+#define INCLUDE_CONSOLELOGGER_CONSOLELOGGER_H_
 
-ErrorLogger::ErrorLogger(uint8_t log_lvl) {
-    log_level = log_lvl;
-}
+// C++ headers
+#include <cstdint>
+#include <string>
 
-void ErrorLogger::Log(const char * msg, uint8_t log_lvl) {
-    if (log_lvl >= log_level) {
-        std::cout << "[" << log_levels[log_lvl] << "] " << msg << std::endl;
-    }
-}
+class ConsoleLogger {
+    private:
+        uint8_t log_level;
+        const char * log_levels[4] = {"INFO", "WARN", "DEBUG", "FATAL"};
 
-ErrorLogger::~ErrorLogger() {
-}
+    public:
+         /**
+         * @brief Constructor for the class
+         * @param log_level Sets the level of logging for the project
+         * @return none
+         */
+        explicit ConsoleLogger(uint8_t log_lvl);
+
+         /**
+         * @brief Destructor for the class
+         * @param none
+         * @return none
+         */
+        ~ConsoleLogger();
+
+         /**
+         * @brief Prints out error messages 
+         * @param msg Message to be logged
+         * @param log_lvl Level of error to be logged
+         * @return none
+         */
+        void Log(const char * msg, uint8_t log_lvl);
+};
+
+#endif  // INCLUDE_CONSOLELOGGER_CONSOLELOGGER_H_

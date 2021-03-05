@@ -35,28 +35,33 @@
 #include <math.h>
 // C++ headers
 #include <cstdint>
-#include <string>
 #include <utility>
+#include <vector>
+#include <queue>
+#include <unordered_map>
 #include <opencv2/opencv.hpp>
 // Other headers
 #include "actions/actions.h"
 #include "structures/structures.h"
-#include "errorLogger/errorLogger.h"
+#include "consoleLogger/consoleLogger.h"
 
 class PathFinder {
     private:
         // Constants
         const int8_t kNoParent = -1;
         const int8_t kStartParent = -2;
-        const std::string kPathListFileName = "pathList.txt";
+        const char kPathListFileName[13] = "pathList.txt";
         // Robot world
         uint16_t robot_start_pos[2], robot_goal_pos[2];
         uint16_t robot_world_size[2];
         cv::Mat robot_world;
-        // Nodes
-        cv::Mat parent_nodes;
+        // Nodes and costs
+        std::unordered_map<uint32_t, int64_t> parent_nodes;
+        std::unordered_map<uint32_t, double> cost_to_come;
+        std::unordered_map<uint32_t, double> final_cost;
+        std::unordered_map<uint32_t, bool> open_nodes_check_map;
         // Class objects
-        ErrorLogger error_logger = ErrorLogger(kInfo);
+        ConsoleLogger logger = ConsoleLogger(kInfo);
         Actions actions;
 
         /**
@@ -65,7 +70,7 @@ class PathFinder {
          * @param action action that yields the node
          * @return cost to reach the node
          */
-        float CostToCome(float parent_node_cost, uint8_t action);
+        double CostToCome(double parent_node_cost, uint8_t action);
 
         /**
          * @brief Finds an estimate of the cost to reach the goal from a node (heuristic)
@@ -74,7 +79,7 @@ class PathFinder {
          * @param epsilon inflation factor; minimum value = 1
          * @return an estimate of the cost cost to reach the goal
          */
-        float CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon);
+        double CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon = 1.0);
 
         /**
          * @brief Convert an element location into a unique integer
@@ -101,7 +106,7 @@ class PathFinder {
          * @param robot_world_loc Location of robot's world image
          * @return none
          */
-        PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, std::string robot_world_loc);
+        PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x, uint16_t goal_y, const char * robot_world_loc);
 
         /**
          * @brief Destructor for the class
@@ -119,18 +124,46 @@ class PathFinder {
         bool IsNodeValid(uint16_t pos_x, uint16_t pos_y);
 
         /**
-         * @brief Finds a path from start to goal if it exists
-         * @param none
-         * @return true if path if found
+         * @brief Calls appropriate path finding method
+         * @param method Specifies the method being used to find path to goal
+         * @return true if path is found
          */
-        bool FindPathToGoal();
+        bool FindPathToGoal(uint8_t method = kAstar, float epsilon = 1.0);
 
         /**
          * @brief Generates a text file listing the nodes in the path
+         * @param path_nodes A map of nodes to find path to goal
+         * @return nothing
+         */
+        void GeneratePathList(std::unordered_map<uint32_t, int64_t> path_nodes, uint32_t list_index);
+
+        /**
+         * @brief Finds a path from start to goal if it exists using A*
          * @param none
          * @return nothing
          */
-        void GeneratePathList();
+        bool Astar();
+
+        /**
+         * @brief Finds a path from start to goal if it exists using ATA*
+         * @param none
+         * @return nothing
+         */
+        bool AtaStar(float epsilon);
+
+        /**
+         * @brief Finds a path from start to goal if it exists using ARA*
+         * @param none
+         * @return nothing
+         */
+        bool AraStar(float epsilon);
+
+        /**
+         * @brief Finds a path from start to goal if it exists using ANA*
+         * @param none
+         * @return nothing
+         */
+        bool AnaStar();
 };
 
 #endif  // INCLUDE_PATHFINDER_PATHFINDER_H_

@@ -1,6 +1,8 @@
 import os
 import cv2
+import shutil
 import numpy as np
+from glob import glob
 
 
 def get_slopes(points) -> list:
@@ -44,24 +46,42 @@ def get_y_values(x: int, slopes: list, coordinates, edge_count: int) -> list:
 
     return dist
 
+def get_path_list(dir: str) -> list:
+    """
+    List of path
+    :param dir: Path to directory that stores path nodes
+    :return: list of location of path text files
+    """
+    text_files_list = []
+    # Add files to a list
+    for file in glob(dir):
+        text_files_list.append(file)
+
+    # Sort the list and return it
+    text_files_list.sort(key=lambda x:int(x.split('_')[1]))
+    return text_files_list
+
 
 class RobotWorld:
-    def __init__(self, radius: int, clearance: int) -> None:
+    def __init__(self, start: tuple, goal: tuple, radius: int, clearance: int) -> None:
         # Declare class constants
         self.WORLD_SIZE = 200, 300
         self.DEG_30 = np.pi / 6
         self.DEG_60 = np.pi / 3
         self.IMG_NAME = "robot_world.png"
         self.CHECK_IMG_NAME = "check_img.png"
-        self.PATH_LIST_FILENAME = "pathList.txt"
         self.SAVE_DIR = "images"
+        self.BUILD_DIR = "build"
+        self.TEXT_FILES_DIR = "path"
         self.SAVE_LOC = os.path.join(os.getcwd(), self.SAVE_DIR, self.IMG_NAME)
         self.CHECK_IMG_LOC = os.path.join(os.getcwd(), self.SAVE_DIR, self.CHECK_IMG_NAME)
-        self.PATH_LIST_LOC = os.path.join(os.getcwd(), "build", self.PATH_LIST_FILENAME)
+        self.TEXT_FILES_LOC = os.path.join(os.getcwd(), self.BUILD_DIR, self.TEXT_FILES_DIR)
         # Various class parameters
         self.height = self.WORLD_SIZE[0]
         self.width = self.WORLD_SIZE[1]
         self.thresh = radius + clearance
+        self.start_pos = start
+        self.goal_pos = goal
         # Get the robot's world
         self.world_img = self.draw_obstacles()
         # Get image to search for obstacles
@@ -229,49 +249,53 @@ class RobotWorld:
         :param map_img: 2-d array with information of the map
         :return: nothing
         """
-        if os.path.exists(self.PATH_LIST_LOC):
-            print("[DEBUG] Path file FOUND!")
+        # Add space between logs
+        print("\n")
+
+        # Get list of text file(s)
+        text_files_list = get_path_list(self.TEXT_FILES_LOC + "/*.txt")
+        if text_files_list is not None:
+            print("[DEBUG] Text file(s) FOUND!")
             print("[INFO] Creating video...")
-            map_img = self.world_img.copy()
+
             # Define video-writer of open-cv to record the exploration and final path
             video_format = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D')
-            video_output = cv2.VideoWriter('exploration' + '.avi', video_format, 10.0,
+            video_output = cv2.VideoWriter('exploration' + '.avi', video_format, 200.0,
                                         (self.WORLD_SIZE[1], self.WORLD_SIZE[0]))
             # Define various color vectors
             red = [0, 0, 255]
             blue = [255, 0, 0]
             green = [0, 255, 0]
-            grey = [200, 200, 200]
-            # Add text to show heuristic weight
-            # if not self.method:
-            #     cv2.putText(map_img, 'Heuristic Weight: ' + str(constants.WEIGHT_A_STAR), (self.WORLD_SIZE[1] - 100, 20),
-            #                 cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 225))
-            # Show all generated nodes
-            # for y, x in self.generated_nodes:
-            #     map_img[self.WORLD_SIZE[0] - y, x] = grey
-            #     video_output.write(map_img)
+
             # Show path
-            # start_node, goal_node = [], []
-            path_nodes = open(self.PATH_LIST_LOC, "r")
-            for line in path_nodes.readlines():
-                node = line.split(",")
-                map_img[self.WORLD_SIZE[0] - int(node[1]), int(node[0])] = blue
-                video_output.write(map_img)
-            # for i in range(len(data) - 1, -1, -1):
-            #     map_img[self.WORLD_SIZE[0] - data[i][0], data[i][1]] = blue
-            #     video_output.write(map_img)
-            # Draw start and goal node to the video frame in the form of filled circle
-            # cv2.circle(map_img, (data[-1][1], self.WORLD_SIZE[0] - data[-1][0]), 2, green, -1)
-            # cv2.circle(map_img, (data[0][1], self.WORLD_SIZE[0] - data[0][0]), 2, red, -1)
-            # Show path for some time after exploration
-            for _ in range(50):
-                video_output.write(map_img)
+            for file in text_files_list:
+                map_img = self.world_img.copy()
+                path_nodes = open(file, "r")
+                for line in path_nodes.readlines():
+                    node = line.split(",")
+                    map_img[self.WORLD_SIZE[0] - int(node[1]), int(node[0])] = blue
+                    video_output.write(map_img)
+
+                # Draw start and goal node to the video frame in the form of filled circle
+                cv2.circle(map_img, (self.start_pos[0], self.WORLD_SIZE[0] - self.start_pos[1]), 3, green, -1)
+                cv2.circle(map_img, (self.goal_pos[0], self.WORLD_SIZE[0] - self.goal_pos[1]), 3, red, -1)
+
+                # Show path for some time after exploration
+                for _ in range(50):
+                    video_output.write(map_img)
+
+            # Free OpenCV objects
             video_output.release()
             cv2.destroyAllWindows()
-            os.remove(self.PATH_LIST_LOC)
+            # Remove text files' directory
+            shutil.rmtree(self.TEXT_FILES_LOC)
+
+            # Check if video file was created
             if os.path.exists(os.path.join(os.getcwd(), "exploration.avi")):
                 print("[DEBUG] Video creation SUCCESSFUL!")
                 return True
+
             print("[DEBUG] Video creation UNSUCCESSFUL!")
+
         print("[DEBUG] Path file NOT FOUND!")
         return False
