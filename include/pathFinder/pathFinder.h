@@ -79,7 +79,7 @@ class PathFinder {
          * @param epsilon inflation factor; minimum value = 1
          * @return an estimate of the cost cost to reach the goal
          */
-        double CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon);
+        double CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon = 1.0);
 
         /**
          * @brief Convert an element location into a unique integer
@@ -128,7 +128,7 @@ class PathFinder {
          * @param method Specifies the method being used to find path to goal
          * @return true if path is found
          */
-        bool FindPathToGoal(uint8_t method = kAstar);
+        bool FindPathToGoal(uint8_t method = kAstar, float epsilon = 1.0);
 
         /**
          * @brief Generates a text file listing the nodes in the path
@@ -149,14 +149,14 @@ class PathFinder {
          * @param none
          * @return nothing
          */
-        bool AtaStar();
+        bool AtaStar(float epsilon);
 
         /**
          * @brief Finds a path from start to goal if it exists using ARA*
          * @param none
          * @return nothing
          */
-        bool AraStar();
+        bool AraStar(float epsilon);
 
         /**
          * @brief Finds a path from start to goal if it exists using ANA*

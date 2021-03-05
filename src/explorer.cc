@@ -42,7 +42,7 @@ int main(int argc, char ** argv) {
     }
 
     PathFinder path_finder = PathFinder(atoi(argv[1]), atoi(argv[2]),
-                                atoi(argv[3]), atoi(argv[4]), argv[6]);
+                                atoi(argv[3]), atoi(argv[4]), argv[7]);
 
     if (!(path_finder.IsNodeValid(atoi(argv[1]), atoi(argv[2])) &&
             path_finder.IsNodeValid(atoi(argv[3]), atoi(argv[4])))) {
@@ -50,7 +50,8 @@ int main(int argc, char ** argv) {
         return kObtsacleSpace;
     }
 
-    if (path_finder.FindPathToGoal(atoi(argv[5]))) {
+    float inflation_factor = std::stof(std::string(argv[6]));
+    if (path_finder.FindPathToGoal(atoi(argv[5]), inflation_factor)) {
         return kSuccess;
     }
 
