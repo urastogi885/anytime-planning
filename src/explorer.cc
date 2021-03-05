@@ -51,8 +51,8 @@ int main(int argc, char ** argv) {
     }
 
     if (path_finder.FindPathToGoal(atoi(argv[5]))) {
-        path_finder.GeneratePathList();
+        return kSuccess;
     }
 
-    return kSuccess;
+    return kPathNotExist;
 }

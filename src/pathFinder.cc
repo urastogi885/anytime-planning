@@ -45,7 +45,7 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
     robot_world_size[0] = robot_world.cols;
     // Initialize parent nodes and cost maps
     uint32_t start_node_index = RavelIndex(robot_start_pos[0], robot_start_pos[1]);
-    parent_nodes[start_node_index] = kStartParent;
+    // parent_nodes[start_node_index] = kStartParent;
     cost_to_come[start_node_index] = 0;
     final_cost[start_node_index] = CostToGo(robot_start_pos[0], robot_start_pos[1], 1);
     // Initialize open nodes
@@ -77,7 +77,7 @@ bool PathFinder::FindPathToGoal(uint8_t method) {
     }
 }
 
-void PathFinder::GeneratePathList() {
+void PathFinder::GeneratePathList(std::unordered_map<uint32_t, int64_t> &path_nodes) {
     std::ofstream path_list;
     path_list.open(kPathListFileName, std::ios::out | std::ios::trunc);
 
@@ -85,8 +85,8 @@ void PathFinder::GeneratePathList() {
     path_list << last_node.first << ", " << last_node.second << std::endl;
 
     // Backtrack the start node
-    while (parent_nodes[RavelIndex(last_node.first, last_node.second)] != kStartParent) {
-        last_node = UnravelIndex(parent_nodes[RavelIndex(last_node.first, last_node.second)]);
+    while (path_nodes[RavelIndex(last_node.first, last_node.second)] != kStartParent) {
+        last_node = UnravelIndex(path_nodes[RavelIndex(last_node.first, last_node.second)]);
         path_list << last_node.first << ", " << last_node.second << std::endl;
     }
 
@@ -96,6 +96,10 @@ void PathFinder::GeneratePathList() {
 }
 
 bool PathFinder::Astar() {
+    // Initialize a map to store parent nodes
+    std::unordered_map<uint32_t, int64_t> parent_nodes;
+    parent_nodes[RavelIndex(robot_start_pos[0], robot_start_pos[1])] = kStartParent;
+
     // Try finding path to goal until the queue goes empty
     while (!open_nodes.empty()) {
         // Extract the node with minimum cost
@@ -106,6 +110,7 @@ bool PathFinder::Astar() {
         // Exit if goal is found
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
             logger.Log("Path to goal FOUND!", kDebug);
+            GeneratePathList(parent_nodes);
             return true;
         }
 
