@@ -6,10 +6,10 @@
 Implementation of various anytime motion planning algorithms
 
 ## Dependencies
-- Languages: C++11, Python
-- CMake: v3.2.0 (at least)
-- OpenCV: v3.3.0 (at least)
-- Python libraries: NumPy, Shutil, Glob, Opencv-Python
+- Languages: `C++11, Python`
+- CMake: `v3.2.0 (at least)`
+- OpenCV: `v3.3.0 (at least)`
+- Python libraries: `NumPy, Shutil, Glob, Opencv-Python`
 
 ## Install Dependencies
 - Install necessary depenedencies using:
