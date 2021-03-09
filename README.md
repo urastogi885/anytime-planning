@@ -3,12 +3,19 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/urastogi885/anytime-planning/blob/main/LICENSE)
 
 ## Overview
-Implementation of various anytime motion planning algorithms
+The project implements various anytime motion planning algorithms such as ATA* and ANA*.
+
+<p align="center">
+  <img src="https://github.com/urastogi885/anytime-planning/blob/main/images/readme/ata_star_combine.jpg">
+  <br><b>Figure 1 - Improvement in path provided by Anytime A* (ATA*)</b><br>
+</p>
+
+In the figure above, we can see that the path provided by ATA* improves over the iterations (left-to-right). From left-to-right, the left one is the first the alogrithm outputs while right one is last path the algorithm outputs.
 
 ## Dependencies
 - Languages: `C++11, Python`
 - CMake: `v3.2.0 (at least)`
-- OpenCV: `v3.3.0 (at least)`
+- OpenCV: `v3.2.0 (at least)`
 - Python libraries: `NumPy, Shutil, Glob, Opencv-Python`
 
 ## Install Dependencies
@@ -43,5 +50,5 @@ python main.py <start_x,start_y> <goal_x,goal_y> <robot_radius, clearance> <meth
 
 - For instance, to execute ATA*, you can use the following command:
 ```
-python main.py 50,30 150,150 1,1 1 1
+python main.py 50,30 150,150 3,2 1 3.5
 ```
