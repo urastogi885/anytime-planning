@@ -38,7 +38,7 @@
 #include <utility>
 #include <vector>
 #include <queue>
-#include <unordered_map>
+#include <map>
 #include <opencv2/opencv.hpp>
 // Other headers
 #include "actions/actions.h"
@@ -51,15 +51,22 @@ class PathFinder {
         const int8_t kNoParent = -1;
         const int8_t kStartParent = -2;
         const char kPathListFileName[13] = "pathList.txt";
+
         // Robot world
         uint16_t robot_start_pos[2], robot_goal_pos[2];
         uint16_t robot_world_size[2];
         cv::Mat robot_world;
+
         // Nodes and costs
-        std::unordered_map<uint32_t, int64_t> parent_nodes;
-        std::unordered_map<uint32_t, double> cost_to_come;
-        std::unordered_map<uint32_t, double> final_cost;
-        std::unordered_map<uint32_t, bool> open_nodes_check_map;
+        std::vector<Node> open_nodes;
+        std::map<uint32_t, int64_t> closed_nodes;
+        std::map<uint32_t, int64_t> parent_nodes;
+        std::map<uint32_t, int64_t> incons_nodes;
+
+        std::map<uint32_t, double> cost_to_come;
+        std::map<uint32_t, double> final_cost;
+        std::map<uint32_t, bool> open_nodes_check_map;
+
         // Class objects
         ConsoleLogger logger = ConsoleLogger(kInfo);
         Actions actions;
@@ -95,6 +102,8 @@ class PathFinder {
          * @return location of the element
          */
         std::pair<uint16_t, uint16_t> UnravelIndex(uint32_t identifier);
+
+        void ImprovePath();
 
     public:
         /**
@@ -135,7 +144,7 @@ class PathFinder {
          * @param path_nodes A map of nodes to find path to goal
          * @return nothing
          */
-        void GeneratePathList(std::unordered_map<uint32_t, int64_t> path_nodes, uint32_t list_index);
+        void GeneratePathList(std::map<uint32_t, int64_t> path_nodes, uint32_t list_index);
 
         /**
          * @brief Finds a path from start to goal if it exists using A*

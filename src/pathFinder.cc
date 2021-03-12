@@ -75,7 +75,7 @@ bool PathFinder::FindPathToGoal(uint8_t method, float epsilon) {
     }
 }
 
-void PathFinder::GeneratePathList(std::unordered_map<uint32_t, int64_t> path_nodes, uint32_t list_index) {
+void PathFinder::GeneratePathList(std::map<uint32_t, int64_t> path_nodes, uint32_t list_index) {
     std::string file_name = "path/pathList_" + std::to_string(list_index) + "_.txt";
     std::ofstream path_list;
     path_list.open(file_name, std::ios::out | std::ios::trunc);
@@ -97,14 +97,13 @@ void PathFinder::GeneratePathList(std::unordered_map<uint32_t, int64_t> path_nod
 
 bool PathFinder::Astar() {
     // Initialize open nodes
-    std::priority_queue<Node, std::vector<Node>, CompareTotalCost> open_nodes;
-    open_nodes.push(Node(robot_start_pos[0], robot_start_pos[1],
+    open_nodes.push_back(Node(robot_start_pos[0], robot_start_pos[1],
                         final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])]));
     // Try finding path to goal until the queue goes empty
     while (!open_nodes.empty()) {
         // Extract the node with minimum cost
-        Node current_node = open_nodes.top();
-        open_nodes.pop();
+        Node current_node = open_nodes.front();
+        open_nodes.erase(open_nodes.begin());
         open_nodes_check_map[RavelIndex(current_node.x, current_node.y)] = false;
 
         // Exit if goal is found
@@ -128,11 +127,13 @@ bool PathFinder::Astar() {
                 cost_to_come[node_index] = temp_cost_to_come;
                 final_cost[node_index] = temp_cost_to_come + CostToGo(x, y);
                 if (!open_nodes_check_map[node_index]) {
-                    open_nodes.push(Node(x, y, final_cost[node_index]));
+                    open_nodes.push_back(Node(x, y, final_cost[node_index]));
                     open_nodes_check_map[node_index] = true;
                 }
             }
         }
+        // Get node with minimum cost n top
+        std::make_heap(open_nodes.begin(), open_nodes.end(), CompareTotalCost());
     }
 
     logger.Log("Path to goal NOT FOUND!", kDebug);
@@ -146,12 +147,10 @@ bool PathFinder::AtaStar(float epsilon) {
     bool path_found = false;
 
     // Initialize open nodes
-    std::vector<Node> open_nodes;
     open_nodes.push_back(Node(robot_start_pos[0], robot_start_pos[1],
                             final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])]));
 
     // Initialize a map to store closed nodes
-    std::unordered_map<uint32_t, int64_t> closed_nodes;
     closed_nodes[RavelIndex(robot_start_pos[0], robot_start_pos[1])] = kStartParent;
     final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])] *= epsilon;
 

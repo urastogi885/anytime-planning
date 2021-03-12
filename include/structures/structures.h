@@ -35,7 +35,7 @@
 #include <math.h>
 // C++ headers
 #include <cstdint>
-#include <unordered_map>
+#include <map>
 
 enum Action {
     kUp = 0,
@@ -87,7 +87,7 @@ struct CompareTotalCost {
 
 // Return infinity as default value for unordered maps
 template<typename K, typename M>
-M& operator|(std::unordered_map<K, M>& umap, const K& key) {
+M& operator|(std::map<K, M>& umap, const K& key) {
     static M defval{INFINITY};
 
     if (!umap.count(key)) {
