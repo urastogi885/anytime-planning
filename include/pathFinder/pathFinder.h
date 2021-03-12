@@ -59,9 +59,9 @@ class PathFinder {
 
         // Nodes and costs
         std::vector<Node> open_nodes;
+        std::vector<Node> incons_nodes;
         std::map<uint32_t, int64_t> closed_nodes;
         std::map<uint32_t, int64_t> parent_nodes;
-        std::map<uint32_t, int64_t> incons_nodes;
 
         std::map<uint32_t, double> cost_to_come;
         std::map<uint32_t, double> final_cost;
@@ -103,7 +103,12 @@ class PathFinder {
          */
         std::pair<uint16_t, uint16_t> UnravelIndex(uint32_t identifier);
 
-        void ImprovePath();
+        /**
+         * @brief Improve path if possible
+         * @param final_cost_goal Current f-value of goal node
+         * @return none
+         */
+        void ImprovePath(double final_cost_goal, float epsilon);
 
     public:
         /**

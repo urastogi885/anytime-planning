@@ -222,7 +222,7 @@ bool PathFinder::AtaStar(float epsilon) {
                     }
                 }
             }
-            // Get node with minimum cost n top
+            // Get node with minimum cost on top
             std::make_heap(open_nodes.begin(), open_nodes.end(), CompareTotalCost());
         }
     }
@@ -237,6 +237,14 @@ bool PathFinder::AtaStar(float epsilon) {
 
 bool PathFinder::AraStar(float epsilon) {
     logger.Log("Method is UNDER DEVELOPMENT! Use some other method.", kInfo);
+    // Initialize cost of goal node
+    cost_to_come[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])] = INFINITY;
+
+    // Initialize open nodes
+    open_nodes.push_back(Node(robot_start_pos[0], robot_start_pos[1],
+                            final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])]));
+    // ImprovePath();
+    float temp_epsilon = epsilon;
     return false;
 }
 
@@ -255,6 +263,45 @@ bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {
     }
 
     return true;
+}
+
+void PathFinder::ImprovePath(double final_cost_goal, float epsilon) {
+    // Get node with minimum cost on top
+    std::make_heap(open_nodes.begin(), open_nodes.end(), CompareTotalCost());
+    while (final_cost_goal > open_nodes.front().final_cost) {
+        Node current_node = open_nodes.front();
+        open_nodes.erase(open_nodes.begin());
+        uint32_t current_node_index = RavelIndex(current_node.x, current_node.y);
+        open_nodes_check_map[current_node_index] = false;
+
+        // Add extracted node to the list of closed nodes
+        if (!(current_node.x == robot_start_pos[0] && current_node.y == robot_start_pos[1])) {
+            closed_nodes[current_node_index] = parent_nodes[current_node_index];
+        }
+
+        // Get neighbors to the current node
+        for (int i = 0; i < actions.kMaxNumActions; ++i) {
+            uint16_t x = actions.GetNextCoord(current_node.x, i);
+            uint16_t y = actions.GetNextCoord(current_node.y, i, 'y');
+
+            double temp_cost_to_come = CostToCome((cost_to_come[current_node_index]), i);
+            uint32_t node_index = RavelIndex(x, y);
+
+            if ((cost_to_come | node_index) > temp_cost_to_come) {
+                // Update various costs and nodes
+                cost_to_come[node_index] = temp_cost_to_come;
+                parent_nodes[node_index] = current_node_index;
+                // Remove node from closed nodes if it exists in there
+                if (closed_nodes.find(node_index) == closed_nodes.end()) {
+                    final_cost[node_index] = temp_cost_to_come + CostToGo(x, y, epsilon);
+                    open_nodes.push_back(Node(x, y, final_cost[node_index]));
+                } else {
+                    incons_nodes.push_back(Node(x, y, final_cost[node_index]));
+                }
+            }
+        }
+    }
+
 }
 
 double PathFinder::CostToCome(double parent_node_cost, uint8_t action) {
