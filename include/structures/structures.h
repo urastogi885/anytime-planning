@@ -37,6 +37,8 @@
 #include <cstdint>
 #include <map>
 
+#define DEFVAL -1
+
 enum Action {
     kUp = 0,
     kDown,
@@ -97,6 +99,17 @@ struct ComparePsuedoCost {
 template<typename K, typename M>
 M& operator|(std::map<K, M>& umap, const K& key) {
     static M defval{INFINITY};
+
+    if (!umap.count(key)) {
+        return defval;
+    }
+
+    return umap[key];
+}
+
+template<typename C, typename V>
+V& operator%(std::map<C, V>& umap, const C& key) {
+    static V defval{DEFVAL};
 
     if (!umap.count(key)) {
         return defval;
