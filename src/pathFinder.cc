@@ -83,19 +83,21 @@ void PathFinder::GeneratePathList(std::map<uint32_t, int64_t> path_nodes, uint32
     std::pair<uint16_t, uint16_t> last_node = std::make_pair(robot_goal_pos[0], robot_goal_pos[1]);
     path_list << last_node.first << ", " << last_node.second << std::endl;
 
-    // int64_t node_index;
+    int64_t node_index = kNoParent;
 
     // Backtrack the start node
     while (path_nodes[RavelIndex(last_node.first, last_node.second)] != kStartParent ||
             parent_nodes[RavelIndex(last_node.first, last_node.second)] != kStartParent) {
-        // if (path_nodes.find(RavelIndex(last_node.first, last_node.second)) == path_nodes.end()) {
-        //     node_index = parent_nodes[RavelIndex(last_node.first, last_node.second)];
-        // } else {
-        //     node_index = path_nodes[RavelIndex(last_node.first, last_node.second)];
-        // }
-        // last_node = UnravelIndex(node_index);
-        last_node = UnravelIndex(path_nodes[RavelIndex(last_node.first, last_node.second)]);
+        if ((path_nodes % RavelIndex(last_node.first, last_node.second)) == kNoParent) {
+            node_index = parent_nodes[RavelIndex(last_node.first, last_node.second)];
+            logger.Log("Parent node not in path nodes!", kDebug);
+        } else {
+            node_index = path_nodes[RavelIndex(last_node.first, last_node.second)];
+        }
+        last_node = UnravelIndex(node_index);
+        // last_node = UnravelIndex(path_nodes[RavelIndex(last_node.first, last_node.second)]);
         path_list << last_node.first << ", " << last_node.second << std::endl;
+        if (last_node.first == 0 && last_node.second == 0)  break;
     }
 
     path_list.close();
@@ -213,7 +215,7 @@ bool PathFinder::AtaStar(float epsilon) {
 
             double temp_cost_to_come = CostToCome((cost_to_come | current_node_index), i);
 
-            // Make sure node is not in obstacle space and it pbeys the bound
+            // Make sure node is not in obstacle space and it obeys the bound
             if (IsNodeValid(x, y) && temp_cost_to_come + CostToGo(x, y) < bound) {
                 uint32_t node_index = RavelIndex(x, y);
                 // Make sure node is not in obstacle space and it is better then the previous one
@@ -290,6 +292,7 @@ bool PathFinder::AraStar(float epsilon) {
         bound = static_cast<float>(cost_to_come[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])]/GetMinCost());
         temp_epsilon = epsilon < bound ? epsilon : bound;
         GeneratePathList(closed_nodes, ++output_count);
+        break;
     }
 
     return true;
@@ -342,9 +345,10 @@ void PathFinder::ImprovePath(float epsilon) {
                 cost_to_come[node_index] = temp_cost_to_come;
                 parent_nodes[node_index] = current_node_index;
                 // Add node to open nodes if it doesn't exist in closed nodes
-                if (closed_nodes.find(node_index) == closed_nodes.end()) {
+                if ((closed_nodes % node_index) == kNoParent) {
                     final_cost[node_index] = temp_cost_to_come + CostToGo(x, y, epsilon);
                     open_nodes.push_back(Node(x, y, final_cost[node_index], temp_cost_to_come + CostToGo(x, y)));
+                    // logger.Log("New operator is working!", kDebug);
                 } else {
                     incons_nodes.push_back(Node(x, y, final_cost[node_index], temp_cost_to_come + CostToGo(x, y)));
                 }
