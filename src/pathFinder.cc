@@ -226,7 +226,7 @@ bool PathFinder::AtaStar(float epsilon) {
                     open_nodes.push_back(Node(x, y, final_cost[node_index]));
 
                     // Remove node from closed nodes if it exists in there
-                    if (closed_nodes[node_index] == kNoParent || closed_nodes.find(node_index) == closed_nodes.end()) {
+                    if (closed_nodes[node_index] != kNoParent || closed_nodes.find(node_index) != closed_nodes.end()) {
                         closed_nodes[node_index] = kNoParent;
                     }
                 }
