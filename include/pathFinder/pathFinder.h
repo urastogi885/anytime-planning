@@ -105,10 +105,17 @@ class PathFinder {
 
         /**
          * @brief Improve path if possible
-         * @param final_cost_goal Current f-value of goal node
+         * @param epsilon Inflation factor
          * @return none
          */
-        void ImprovePath(double final_cost_goal, float epsilon);
+        void ImprovePath(float epsilon);
+
+        /**
+         * @brief Get minimum f-value among open and inconsistent nodes
+         * @param none
+         * @return Minimum f-value
+         */
+        double GetMinCost();
 
     public:
         /**
@@ -154,28 +161,28 @@ class PathFinder {
         /**
          * @brief Finds a path from start to goal if it exists using A*
          * @param none
-         * @return nothing
+         * @return suceess
          */
         bool Astar();
 
         /**
          * @brief Finds a path from start to goal if it exists using ATA*
-         * @param none
-         * @return nothing
+         * @param epsilon Inflation factor
+         * @return success
          */
         bool AtaStar(float epsilon);
 
         /**
          * @brief Finds a path from start to goal if it exists using ARA*
-         * @param none
-         * @return nothing
+         * @param epsilon Inflation factor
+         * @return success
          */
         bool AraStar(float epsilon);
 
         /**
          * @brief Finds a path from start to goal if it exists using ANA*
-         * @param none
-         * @return nothing
+         * @param epsilon Inflation factor
+         * @return success
          */
         bool AnaStar();
 };
