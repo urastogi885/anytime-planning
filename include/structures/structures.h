@@ -72,9 +72,10 @@ enum ExitCodes {
 struct Node {
     uint16_t x, y;
     double final_cost;
+    double psuedo_cost;
 
-    Node(uint16_t x, uint16_t y, double cost)
-        : x(x), y(y), final_cost(cost) {
+    Node(uint16_t x, uint16_t y, double cost, double psuedo_cost = -1)
+        : x(x), y(y), final_cost(cost), psuedo_cost(psuedo_cost) {
     }
 };
 
@@ -82,6 +83,13 @@ struct CompareTotalCost {
     bool operator()(Node const& a, Node const& b) const{
         // reverse sort to put the lowest value at the top
         return a.final_cost > b.final_cost;
+    }
+};
+
+struct ComparePsuedoCost {
+    bool operator()(Node const& a, Node const& b) const{
+        // reverse sort to put the lowest value at the top
+        return a.psuedo_cost > b.psuedo_cost;
     }
 };
 
