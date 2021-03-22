@@ -60,8 +60,7 @@ class PathFinder {
         // Nodes and costs
         std::vector<Node> open_nodes;
         std::vector<Node> incons_nodes;
-        std::map<uint32_t, int64_t> closed_nodes;
-        std::map<uint32_t, int64_t> parent_nodes;
+        std::vector<Node> closed_nodes;
 
         std::map<uint32_t, double> cost_to_come;
         std::map<uint32_t, double> final_cost;
@@ -94,14 +93,14 @@ class PathFinder {
          * @param pos_y y-coordinate of the node
          * @return a unique identifying integer
          */
-        uint32_t RavelIndex(uint16_t pos_x, uint16_t pos_y);
+        int32_t RavelIndex(uint16_t pos_x, uint16_t pos_y);
 
         /**
          * @brief Convert an integer into an element location
          * @param identifier x-coordinate of the node
          * @return location of the element
          */
-        std::pair<uint16_t, uint16_t> UnravelIndex(uint32_t identifier);
+        std::pair<uint16_t, uint16_t> UnravelIndex(int32_t identifier);
 
         /**
          * @brief Improve path if possible
@@ -156,7 +155,7 @@ class PathFinder {
          * @param path_nodes A map of nodes to find path to goal
          * @return nothing
          */
-        void GeneratePathList(std::map<uint32_t, int64_t> path_nodes, uint32_t list_index);
+        void GeneratePathList(uint32_t list_index);
 
         /**
          * @brief Finds a path from start to goal if it exists using A*
