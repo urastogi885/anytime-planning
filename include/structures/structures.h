@@ -73,11 +73,12 @@ enum ExitCodes {
 
 struct Node {
     uint16_t x, y;
+    int32_t parent;
     double final_cost;
     double psuedo_cost;
 
-    Node(uint16_t x, uint16_t y, double cost, double psuedo_cost = -1)
-        : x(x), y(y), final_cost(cost), psuedo_cost(psuedo_cost) {
+    Node(uint16_t x, uint16_t y, double cost, int32_t parent = DEFVAL, double psuedo_cost = -1)
+        : x(x), y(y), final_cost(cost), parent(parent), psuedo_cost(psuedo_cost) {
     }
 };
 
