@@ -64,7 +64,6 @@ class PathFinder {
 
         std::map<uint32_t, double> cost_to_come;
         std::map<uint32_t, double> final_cost;
-        std::map<uint32_t, bool> open_nodes_check_map;
 
         // Class objects
         ConsoleLogger logger = ConsoleLogger(kInfo);

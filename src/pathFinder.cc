@@ -45,10 +45,8 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
     robot_world_size[0] = robot_world.cols;
     // Initialize parent nodes and cost maps
     uint32_t start_node_index = RavelIndex(robot_start_pos[0], robot_start_pos[1]);
-    // parent_nodes[start_node_index] = kStartParent;
     cost_to_come[start_node_index] = 0;
     final_cost[start_node_index] = CostToGo(robot_start_pos[0], robot_start_pos[1]);
-    open_nodes_check_map[start_node_index] = true;
 }
 
 bool PathFinder::FindPathToGoal(uint8_t method, float epsilon) {
@@ -115,7 +113,6 @@ bool PathFinder::Astar() {
         closed_nodes.push_back(current_node);
 
         uint32_t current_node_index = RavelIndex(current_node.x, current_node.y);
-        open_nodes_check_map[current_node_index] = false;
 
         // Exit if goal is found
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
@@ -134,11 +131,18 @@ bool PathFinder::Astar() {
 
             // Make sure node is not in obstacle space and it is better then the previous one
             if (IsNodeValid(x, y) && temp_cost_to_come <  (cost_to_come | node_index)) {
+                // Update costs
                 cost_to_come[node_index] = temp_cost_to_come;
                 final_cost[node_index] = temp_cost_to_come + CostToGo(x, y);
-                if (!open_nodes_check_map[node_index]) {
+                // If new, add to open nodes otherwise update parent
+                if (!FindNodeInList(open_nodes, x, y)) {
                     open_nodes.push_back(Node(x, y, final_cost[node_index], current_node_index));
-                    open_nodes_check_map[node_index] = true;
+                } else {
+                    for (auto i = 0; i < open_nodes.size(); ++i) {
+                        if(open_nodes[i].x == x && open_nodes[i].y == y) {
+                            open_nodes[i].parent = current_node_index;
+                        }
+                    }
                 }
             }
         }
@@ -170,7 +174,6 @@ bool PathFinder::AtaStar(float epsilon) {
         closed_nodes.push_back(current_node);
 
         uint32_t current_node_index = RavelIndex(current_node.x, current_node.y);
-        open_nodes_check_map[current_node_index] = false;
 
         // Exit if goal is found
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
@@ -187,7 +190,6 @@ bool PathFinder::AtaStar(float epsilon) {
                 Node node = *it;
                 if (cost_to_come[RavelIndex(node.x, node.y)] + CostToGo(node.x, node.y) >= bound) {
                     open_nodes.erase(it);
-                    open_nodes_check_map[RavelIndex(node.x, node.y)] = false;
 
                     // No more pruning possible
                     if (open_nodes.empty()) {
@@ -197,7 +199,7 @@ bool PathFinder::AtaStar(float epsilon) {
                 }
             }
 
-            // If vector becomes empty during pruning exit
+            // If vector becomes empty during pruning, exit
             if (open_nodes.empty()) {
                 break;
             }
@@ -214,12 +216,11 @@ bool PathFinder::AtaStar(float epsilon) {
             if (IsNodeValid(x, y) && temp_cost_to_come + CostToGo(x, y) < bound) {
                 uint32_t node_index = RavelIndex(x, y);
                 // Make sure node is not in obstacle space and it is better then the previous one
-                if (!(open_nodes_check_map[node_index] || FindNodeInList(closed_nodes, x, y))
+                if (!(FindNodeInList(open_nodes, x, y) || FindNodeInList(closed_nodes, x, y))
                         || temp_cost_to_come <  (cost_to_come | node_index)) {
                     // Update various costs and nodes
                     cost_to_come[node_index] = temp_cost_to_come;
                     final_cost[node_index] = temp_cost_to_come + CostToGo(x, y, epsilon);
-                    open_nodes_check_map[node_index] = true;
                     open_nodes.push_back(Node(x, y, final_cost[node_index], current_node_index));
 
                     // Remove node from closed nodes if it exists in there
