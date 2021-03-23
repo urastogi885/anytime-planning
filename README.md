@@ -25,7 +25,7 @@ sudo apt-get install build-essential cmake libopencv-dev
 python -m pip install numpy shutil glob opencv-python
 ```
 - OpenCV can be installed from scratch as well but is not necessary for this project. One of the resources is [here](https://learnopencv.com/install-opencv-4-on-ubuntu-18-04/).
-- The above commands are based on Ubuntu 18.04. They might differ for other OS-based machines such as Windows and MacOC.
+- The above commands are based on Ubuntu 18.04. They might differ for other OS-based machines such as Windows and MacOS.
 
 ## Build & Run
 - Clone the repository into your workspace and move into the project directory
