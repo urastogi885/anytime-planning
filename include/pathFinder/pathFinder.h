@@ -116,6 +116,13 @@ class PathFinder {
          */
         double GetMinCost();
 
+        /**
+         * @brief Check whether a node is in the list
+         * @param node_list A vector of nodes
+         * @return True if node exists in the list
+         */
+        bool FindNodeInList(std::vector<Node> &node_list, uint16_t x, uint16_t y);
+
     public:
         /**
          * @brief Constructor for the class
