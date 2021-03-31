@@ -30,15 +30,16 @@
 
 #include <iostream>
 #include <fstream>
+#include <chrono>
 #include "pathFinder/pathFinder.h"
 
 PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
                 uint16_t goal_y, const char * robot_world_loc) {
     // Store start and goal position of the robot
-    robot_start_pos[0] = start_x;
-    robot_start_pos[1] = start_y;
-    robot_goal_pos[0] = goal_x;
-    robot_goal_pos[1] = goal_y;
+    robot_start_pos[0] = goal_x;
+    robot_start_pos[1] = goal_y;
+    robot_goal_pos[0] = start_x;
+    robot_goal_pos[1] = start_y;
     // Read the image and store its size
     robot_world = cv::imread(robot_world_loc, CV_LOAD_IMAGE_GRAYSCALE);
     robot_world_size[1] = robot_world.rows;
@@ -59,9 +60,9 @@ bool PathFinder::FindPathToGoal(uint8_t method, float epsilon) {
         logger.Log("Finding path to goal using ATA*...", kInfo);
         return AtaStar(epsilon);
 
-    // case kAraStar:
-    //     logger.Log("Finding path to goal using ARA*...", kInfo);
-    //     return AraStar(epsilon);
+    case kAraStar:
+        logger.Log("Finding path to goal using ARA*...", kInfo);
+        return AraStar(epsilon);
 
     case kAnaStar:
         logger.Log("Finding path to goal using ANA*...", kInfo);
@@ -101,6 +102,8 @@ void PathFinder::GeneratePathList(uint32_t list_index) {
 }
 
 bool PathFinder::Astar() {
+    // Start timer
+    auto start = std::chrono::high_resolution_clock::now();
     // Initialize open nodes
     open_nodes.push_back(Node(robot_start_pos[0], robot_start_pos[1],
                         final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])],
@@ -118,6 +121,10 @@ bool PathFinder::Astar() {
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
             logger.Log("Path to goal FOUND!", kDebug);
             GeneratePathList(1);
+            
+            // Record time
+            auto stop = std::chrono::high_resolution_clock::now();
+            std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << std::endl;
             return true;
         }
 
@@ -175,7 +182,7 @@ bool PathFinder::AtaStar(float epsilon) {
 
         uint32_t current_node_index = RavelIndex(current_node.x, current_node.y);
 
-        // Exit if goal is found
+        // Get path if goal is found
         if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
             path_found = true;
             logger.Log("Path to goal FOUND!", kDebug);
@@ -184,24 +191,18 @@ bool PathFinder::AtaStar(float epsilon) {
             bound = cost_to_come[current_node_index] + CostToGo(current_node.x, current_node.y);
             GeneratePathList(++output_count);
 
-            // Prune the open nodes list
-            logger.Log("Pruning open nodes list...", kInfo);
-            for (auto it = open_nodes.begin(); it != open_nodes.end(); ++it) {
-                Node node = *it;
-                if (cost_to_come[RavelIndex(node.x, node.y)] + CostToGo(node.x, node.y) >= bound) {
-                    open_nodes.erase(it);
-
-                    // No more pruning possible
-                    if (open_nodes.empty()) {
-                        logger.Log("Open nodes list is EMPTY!", kWarn);
-                        break;
+            // Prune open nodes list if it is not empty
+            if (!open_nodes.empty()) {
+                logger.Log("Pruning open nodes list...", kInfo);
+                for (auto it = open_nodes.begin(); it != open_nodes.end(); ++it) {
+                    Node node = *it;
+                    if (cost_to_come[RavelIndex(node.x, node.y)] + CostToGo(node.x, node.y) >= bound) {
+                        open_nodes.erase(it);
                     }
                 }
-            }
-
-            // If vector becomes empty during pruning, exit
-            if (open_nodes.empty()) {
-                break;
+            } else {
+                logger.Log("Open nodes list is EMPTY!", kWarn);
+                return path_found;
             }
         }
 
@@ -210,26 +211,23 @@ bool PathFinder::AtaStar(float epsilon) {
             uint16_t x = actions.GetNextCoord(current_node.x, i);
             uint16_t y = actions.GetNextCoord(current_node.y, i, 'y');
 
-            double temp_cost_to_come = CostToCome((cost_to_come | current_node_index), i);
+            double temp_cost_to_come = CostToCome(cost_to_come[current_node_index], i);
 
             // Make sure node is not in obstacle space and it obeys the bound
             if (IsNodeValid(x, y) && temp_cost_to_come + CostToGo(x, y) < bound) {
                 uint32_t node_index = RavelIndex(x, y);
-                // Make sure node is not in obstacle space and it is better then the previous one
-                if (!(FindNodeInList(open_nodes, x, y) || FindNodeInList(closed_nodes, x, y))
-                        || temp_cost_to_come <  (cost_to_come | node_index)) {
+                int16_t in_closed_index = FindNodeInList(closed_nodes, x, y);
+                // Make sure the node is neither in open nodes nor in closed nodes
+                if ((in_closed_index == kNotInList && FindNodeInList(open_nodes, x, y) == kNotInList)
+                    || temp_cost_to_come <  (cost_to_come | node_index)) {
                     // Update various costs and nodes
                     cost_to_come[node_index] = temp_cost_to_come;
-                    final_cost[node_index] = temp_cost_to_come + CostToGo(x, y, epsilon);
+                    final_cost[node_index] = cost_to_come[node_index] + CostToGo(x, y, epsilon);
                     open_nodes.push_back(Node(x, y, final_cost[node_index], current_node_index));
 
                     // Remove node from closed nodes if it exists in there
-                    for (auto it = closed_nodes.begin(); it != closed_nodes.end(); ++it) {
-                        Node node = *it;
-                        if (node.x == x && node.y == y) {
-                            closed_nodes.erase(it);
-                            break;
-                        }
+                    if (in_closed_index != kNotInList) {
+                        closed_nodes.erase(closed_nodes.begin() + in_closed_index);
                     }
                 }
             }
@@ -247,7 +245,6 @@ bool PathFinder::AtaStar(float epsilon) {
     return path_found;
 }
 
-/*
 bool PathFinder::AraStar(float epsilon) {
     logger.Log("Method is UNDER DEVELOPMENT! Use some other method.", kInfo);
     // Initialize cost of goal node
@@ -259,46 +256,51 @@ bool PathFinder::AraStar(float epsilon) {
     final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])] *= epsilon;
     open_nodes.push_back(Node(robot_start_pos[0], robot_start_pos[1],
                             final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])],
+                            kStartParent,
                             cost_to_come[RavelIndex(robot_start_pos[0], robot_start_pos[1])] +
                                 CostToGo(robot_start_pos[0], robot_start_pos[1])));
     
     // Find goal node
     ImprovePath(epsilon);
-    closed_nodes[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])] = parent_nodes[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])];
+    // closed_nodes.push_back()[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])] = parent_nodes[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])];
 
     // Publish current sub-optimal solution
     float bound = static_cast<float>(cost_to_come[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])]/GetMinCost());
     float temp_epsilon = epsilon < bound ? epsilon : bound;
-    GeneratePathList(closed_nodes, ++output_count);
+    GeneratePathList(++output_count);
 
     while (temp_epsilon > 1) {
         epsilon = temp_epsilon - 0.01;
 
         // Move nodes from inconsistent set to open set
-        // Update f-value of each node in the inconsisten set
-        for (auto it = std::begin(incons_nodes); it != std::end(incons_nodes); ++it) {
+        for (auto it = incons_nodes.begin(); it != incons_nodes.end(); ++it) {
             Node node = *it;
-            node.final_cost = cost_to_come[RavelIndex(node.x, node.y)] + CostToGo(node.x, node.y, epsilon);
             open_nodes.push_back(node);
         }
-
-        // Empty inconsistent and closed sets
         incons_nodes.clear();
+
+        // Update f-value of each node in the open nodes set
+        for (auto i = 0; i < open_nodes.size(); ++i) {
+            Node node = open_nodes[i];
+            open_nodes[i].final_cost = cost_to_come[RavelIndex(node.x, node.y)] + CostToGo(node.x, node.y, epsilon);
+        }
+
+        // Empty closed sets
         closed_nodes.clear();
 
         // Try to improve path
         ImprovePath(epsilon);
-        closed_nodes[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])] = parent_nodes[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])];
+        closed_nodes.push_back(open_nodes.front());
+        // closed_nodes[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])] = parent_nodes[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])];
 
         // Publish current sub-optimal solution
         bound = static_cast<float>(cost_to_come[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])]/GetMinCost());
         temp_epsilon = epsilon < bound ? epsilon : bound;
-        GeneratePathList(closed_nodes, ++output_count);
+        GeneratePathList(++output_count);
     }
 
     return true;
 }
-*/
 
 bool PathFinder::AnaStar() {
     logger.Log("Method is UNDER DEVELOPMENT! Use some other method.", kInfo);
@@ -312,6 +314,8 @@ void PathFinder::ImprovePath(float epsilon) {
     while (cost_to_come[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])] > open_nodes.front().final_cost) {
         Node current_node = open_nodes.front();
         open_nodes.erase(open_nodes.begin());
+        closed_nodes.push_back(current_node);
+
         uint32_t current_node_index = RavelIndex(current_node.x, current_node.y);
 
         // Add extracted node to the list of closed nodes
@@ -333,15 +337,14 @@ void PathFinder::ImprovePath(float epsilon) {
             if (IsNodeValid(x, y) && (cost_to_come | node_index) > temp_cost_to_come) {
                 // Update various costs and nodes
                 cost_to_come[node_index] = temp_cost_to_come;
-                // parent_nodes[node_index] = current_node_index;
                 // Add node to open nodes if it doesn't exist in closed nodes
-                // if ((closed_nodes % node_index) == kNoParent) {
-                //     final_cost[node_index] = temp_cost_to_come + CostToGo(x, y, epsilon);
-                //     open_nodes.push_back(Node(x, y, final_cost[node_index], temp_cost_to_come + CostToGo(x, y)));
-                //     // logger.Log("New operator is working!", kDebug);
-                // } else {
-                //     incons_nodes.push_back(Node(x, y, final_cost[node_index], temp_cost_to_come + CostToGo(x, y)));
-                // }
+                if (!FindNodeInList(closed_nodes, x, y)) {
+                    final_cost[node_index] = cost_to_come[node_index] + CostToGo(x, y, epsilon);
+                    open_nodes.push_back(Node(x, y, final_cost[node_index], current_node_index, temp_cost_to_come + CostToGo(x, y)));
+                    // logger.Log("New operator is working!", kDebug);
+                } else {
+                    incons_nodes.push_back(Node(x, y, final_cost[node_index], current_node_index, temp_cost_to_come + CostToGo(x, y)));
+                }
             }
         }
 
@@ -352,14 +355,14 @@ void PathFinder::ImprovePath(float epsilon) {
     logger.Log("Goal found!", kDebug);
 }
 
-bool PathFinder::FindNodeInList(std::vector<Node> &node_list, uint16_t x, uint16_t y) {
+int16_t PathFinder::FindNodeInList(std::vector<Node> &node_list, uint16_t x, uint16_t y) {
     for (auto it = node_list.begin(); it != node_list.end(); ++it) {
         Node node = *it;
         if (node.x == x && node.y == y) {
-            return true;
+            return it - node_list.begin();
         }
     }
-    return false;
+    return kNotInList;
 }
 
 bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {

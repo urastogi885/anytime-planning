@@ -50,7 +50,7 @@ class PathFinder {
         // Constants
         const int8_t kNoParent = -1;
         const int8_t kStartParent = -2;
-        const char kPathListFileName[13] = "pathList.txt";
+        const int8_t kNotInList = -1;
 
         // Robot world
         uint16_t robot_start_pos[2], robot_goal_pos[2];
@@ -118,9 +118,9 @@ class PathFinder {
         /**
          * @brief Check whether a node is in the list
          * @param node_list A vector of nodes
-         * @return True if node exists in the list
+         * @return Index of the element if present
          */
-        bool FindNodeInList(std::vector<Node> &node_list, uint16_t x, uint16_t y);
+        int16_t FindNodeInList(std::vector<Node> &node_list, uint16_t x, uint16_t y);
 
     public:
         /**
