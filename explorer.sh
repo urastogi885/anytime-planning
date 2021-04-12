@@ -12,5 +12,5 @@ fi
 # Create directory to store text files
 mkdir path/
 # Configure and compile the project
-cmake ..
+cmake -DMAKE_BULID_TYPE=Release ..
 cmake --build .
