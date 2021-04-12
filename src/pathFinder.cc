@@ -28,9 +28,13 @@
  * @brief Implements the PathFinder's class to find a path from start to goal if it exists
  */
 
+// C headers
+#include <math.h>
+// C++ headers
 #include <iostream>
 #include <fstream>
 #include <chrono>
+// Other headers
 #include "pathFinder/pathFinder.h"
 
 PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
@@ -44,10 +48,6 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
     robot_world = cv::imread(robot_world_loc, CV_LOAD_IMAGE_GRAYSCALE);
     robot_world_size[1] = robot_world.rows;
     robot_world_size[0] = robot_world.cols;
-    // Initialize parent nodes and cost maps
-    uint32_t start_node_index = RavelIndex(robot_start_pos[0], robot_start_pos[1]);
-    cost_to_come[start_node_index] = 0;
-    final_cost[start_node_index] = CostToGo(robot_start_pos[0], robot_start_pos[1]);
 }
 
 bool PathFinder::FindPathToGoal(uint8_t method, float epsilon) {
@@ -56,17 +56,17 @@ bool PathFinder::FindPathToGoal(uint8_t method, float epsilon) {
         logger.Log("Finding path to goal using A*...", kInfo);
         return Astar();
 
-    case kAtaStar:
-        logger.Log("Finding path to goal using ATA*...", kInfo);
-        return AtaStar(epsilon);
+    // case kAtaStar:
+    //     logger.Log("Finding path to goal using ATA*...", kInfo);
+    //     return AtaStar(epsilon);
 
-    case kAraStar:
-        logger.Log("Finding path to goal using ARA*...", kInfo);
-        return AraStar(epsilon);
+    // case kAraStar:
+    //     logger.Log("Finding path to goal using ARA*...", kInfo);
+    //     return AraStar(epsilon);
 
-    case kAnaStar:
-        logger.Log("Finding path to goal using ANA*...", kInfo);
-        return AnaStar();
+    // case kAnaStar:
+    //     logger.Log("Finding path to goal using ANA*...", kInfo);
+    //     return AnaStar();
 
     default:
         logger.Log("INVALID method!", kFatal);
@@ -80,19 +80,19 @@ void PathFinder::GeneratePathList(uint32_t list_index) {
     path_list.open(file_name, std::ios::out | std::ios::trunc);
 
     // Add goal node into the list of path nodes
-    Node last_node = closed_nodes.back();
-    path_list << last_node.x << ", " << last_node.y << std::endl;
+    Node *last_node = closed_nodes.GetLastNode();
+    auto last_coords = last_node->GetCoordinates();
+    path_list << last_coords[0] << ", " << last_coords[1] << std::endl;
 
     // Backtrack the start node
-    while (last_node.parent != kStartParent) {
-        for (auto it = closed_nodes.begin(); it != closed_nodes.end(); ++it) {
-            Node node = *it;
-            if (RavelIndex(node.x, node.y) == last_node.parent) {
-                last_node = node;
-                path_list << last_node.x << ", " << last_node.y << std::endl;
-                break;
-            }
+    while (last_node->GetParent() != NULL) {
+        uint16_t index = closed_nodes.FindNode(last_node->GetParent());
+        if (index == kNotInList) {
+            break;
         }
+        last_node = closed_nodes.GetNode(index);
+        last_coords = last_node->GetCoordinates();
+        path_list << last_coords[0] << ", " << last_coords[1] << std::endl;
     }
 
     path_list.close();
@@ -104,21 +104,27 @@ void PathFinder::GeneratePathList(uint32_t list_index) {
 bool PathFinder::Astar() {
     // Start timer
     auto start = std::chrono::high_resolution_clock::now();
-    // Initialize open nodes
-    open_nodes.push_back(Node(robot_start_pos[0], robot_start_pos[1],
-                        final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])],
-                        kStartParent));
-    // Try finding path to goal until the queue goes empty
-    while (!open_nodes.empty()) {
-        // Extract the node with minimum cost and add it to the closed nodes list
-        Node current_node = open_nodes.front();
-        open_nodes.erase(open_nodes.begin());
-        closed_nodes.push_back(current_node);
 
-        uint32_t current_node_index = RavelIndex(current_node.x, current_node.y);
+    // Add parent map
+    std::map<uint32_t, int8_t> parent_map;
+    parent_map[RavelIndex(robot_start_pos[0], robot_start_pos[1])] = kStartParent;
+
+    // Initialize open nodes
+    Node *current_node;
+    open_nodes.AddNode(new Node(robot_start_pos[0], robot_start_pos[1], 0,
+                        CostToGo(robot_start_pos[0], robot_start_pos[1]), NULL));
+
+    // Try finding path to goal until the queue goes empty
+    while (!open_nodes.IsEmpty()) {
+        // Extract the node with minimum cost and add it to the closed nodes list
+        current_node = open_nodes.GetTopNode();
+        open_nodes.Pop();
+        closed_nodes.AddNode(current_node);
+
+        auto current_coords = current_node->GetCoordinates();
 
         // Exit if goal is found
-        if (current_node.x == robot_goal_pos[0] && current_node.y == robot_goal_pos[1]) {
+        if (current_coords[0] == robot_goal_pos[0] && current_coords[1] == robot_goal_pos[1]) {
             logger.Log("Path to goal FOUND!", kDebug);
             GeneratePathList(1);
             
@@ -130,48 +136,38 @@ bool PathFinder::Astar() {
 
         // Generate child nodes
         for (int i = 0; i < actions.kMaxNumActions; ++i) {
-            uint16_t x = actions.GetNextCoord(current_node.x, i);
-            uint16_t y = actions.GetNextCoord(current_node.y, i, 'y');
-
-            uint32_t node_index = RavelIndex(x, y);
-            double temp_cost_to_come = CostToCome((cost_to_come | current_node_index), i);
+            uint16_t x = actions.GetNextCoord(current_coords[0], i);
+            uint16_t y = actions.GetNextCoord(current_coords[1], i, 'y');
 
             // Make sure node is not in obstacle space and it is better then the previous one
-            if (IsNodeValid(x, y) && temp_cost_to_come <  (cost_to_come | node_index)) {
-                // Update costs
-                cost_to_come[node_index] = temp_cost_to_come;
-                final_cost[node_index] = temp_cost_to_come + CostToGo(x, y);
-                // If new, add to open nodes otherwise update parent
-                if (!FindNodeInList(open_nodes, x, y)) {
-                    open_nodes.push_back(Node(x, y, final_cost[node_index], current_node_index));
-                } else {
-                    for (auto i = 0; i < open_nodes.size(); ++i) {
-                        if(open_nodes[i].x == x && open_nodes[i].y == y) {
-                            open_nodes[i].parent = current_node_index;
-                        }
-                    }
-                }
+            if (IsNodeValid(x, y) && parent_map.find(RavelIndex(x, y)) == parent_map.end()) {
+                // Update parent and cost-to-come
+                parent_map[RavelIndex(x, y)] = 1;
+                double cost2come = CostToCome(current_node->GetCostToCome(), i);
+                // Add nodes to open list
+                open_nodes.AddNode(new Node(x, y, cost2come, cost2come + CostToGo(x, y), current_node));
             }
         }
-        // Get node with minimum cost on top
-        std::make_heap(open_nodes.begin(), open_nodes.end(), CompareTotalCost());
     }
 
     logger.Log("Path to goal NOT FOUND!", kDebug);
     return false;
 }
 
+/*
 bool PathFinder::AtaStar(float epsilon) {
     // Initialize bound, inflation factor, and output counter
     double bound = INFINITY;
     uint32_t output_count = 0;
     bool path_found = false;
 
+    // Start timer
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     // Initialize open nodes
     final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])] *= epsilon;
     open_nodes.push_back(Node(robot_start_pos[0], robot_start_pos[1],
-                            final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])],
-                            kStartParent));
+                            final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])]));
 
     // Try finding path to goal until the queue goes empty
     while (!open_nodes.empty()) {
@@ -190,6 +186,12 @@ bool PathFinder::AtaStar(float epsilon) {
             // Update the bound and generate path text file
             bound = cost_to_come[current_node_index] + CostToGo(current_node.x, current_node.y);
             GeneratePathList(++output_count);
+
+            // Record time
+            auto stop_time = std::chrono::high_resolution_clock::now();
+            std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time).count() << std::endl;
+            // Update start time for next iteration
+            start_time = std::chrono::high_resolution_clock::now();
 
             // Prune open nodes list if it is not empty
             if (!open_nodes.empty()) {
@@ -256,13 +258,12 @@ bool PathFinder::AraStar(float epsilon) {
     final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])] *= epsilon;
     open_nodes.push_back(Node(robot_start_pos[0], robot_start_pos[1],
                             final_cost[RavelIndex(robot_start_pos[0], robot_start_pos[1])],
-                            kStartParent,
+                            NULL,
                             cost_to_come[RavelIndex(robot_start_pos[0], robot_start_pos[1])] +
                                 CostToGo(robot_start_pos[0], robot_start_pos[1])));
     
     // Find goal node
     ImprovePath(epsilon);
-    // closed_nodes.push_back()[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])] = parent_nodes[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])];
 
     // Publish current sub-optimal solution
     float bound = static_cast<float>(cost_to_come[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])]/GetMinCost());
@@ -270,7 +271,7 @@ bool PathFinder::AraStar(float epsilon) {
     GeneratePathList(++output_count);
 
     while (temp_epsilon > 1) {
-        epsilon = temp_epsilon - 0.01;
+        epsilon--;
 
         // Move nodes from inconsistent set to open set
         for (auto it = incons_nodes.begin(); it != incons_nodes.end(); ++it) {
@@ -290,7 +291,7 @@ bool PathFinder::AraStar(float epsilon) {
 
         // Try to improve path
         ImprovePath(epsilon);
-        closed_nodes.push_back(open_nodes.front());
+        // closed_nodes.push_back(open_nodes.front());
         // closed_nodes[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])] = parent_nodes[RavelIndex(robot_goal_pos[0], robot_goal_pos[1])];
 
         // Publish current sub-optimal solution
@@ -317,14 +318,6 @@ void PathFinder::ImprovePath(float epsilon) {
         closed_nodes.push_back(current_node);
 
         uint32_t current_node_index = RavelIndex(current_node.x, current_node.y);
-
-        // Add extracted node to the list of closed nodes
-        // FIXME: Fix Updating of parent nodes and backtracking
-        // if (!(current_node.x == robot_start_pos[0] && current_node.y == robot_start_pos[1])) {
-        //     closed_nodes[current_node_index] = parent_nodes[current_node_index];
-        // } else {
-        //     closed_nodes[RavelIndex(robot_start_pos[0], robot_start_pos[1])] = kStartParent;
-        // }
 
         // Get neighbors to the current node
         for (int i = 0; i < actions.kMaxNumActions; ++i) {
@@ -354,16 +347,7 @@ void PathFinder::ImprovePath(float epsilon) {
 
     logger.Log("Goal found!", kDebug);
 }
-
-int16_t PathFinder::FindNodeInList(std::vector<Node> &node_list, uint16_t x, uint16_t y) {
-    for (auto it = node_list.begin(); it != node_list.end(); ++it) {
-        Node node = *it;
-        if (node.x == x && node.y == y) {
-            return it - node_list.begin();
-        }
-    }
-    return kNotInList;
-}
+*/
 
 bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {
     pos_y = robot_world_size[1] - pos_y;
@@ -377,18 +361,18 @@ bool PathFinder::IsNodeValid(uint16_t pos_x, uint16_t pos_y) {
     return true;
 }
 
-double PathFinder::GetMinCost() {
-    std::make_heap(open_nodes.begin(), open_nodes.end(), ComparePsuedoCost());
+// double PathFinder::GetMinCost() {
+//     std::make_heap(open_nodes.begin(), open_nodes.end(), ComparePsuedoCost());
 
-    if (incons_nodes.empty()) {
-        return open_nodes.front().psuedo_cost;
-    }
+//     if (incons_nodes.empty()) {
+//         return open_nodes.front().psuedo_cost;
+//     }
 
-    std::make_heap(incons_nodes.begin(), incons_nodes.end(), ComparePsuedoCost());
+//     std::make_heap(incons_nodes.begin(), incons_nodes.end(), ComparePsuedoCost());
 
-    return (open_nodes.front().psuedo_cost < incons_nodes.front().psuedo_cost ?
-            open_nodes.front().psuedo_cost : incons_nodes.front().psuedo_cost);
-}
+//     return (open_nodes.front().psuedo_cost < incons_nodes.front().psuedo_cost ?
+//             open_nodes.front().psuedo_cost : incons_nodes.front().psuedo_cost);
+// }
 
 double PathFinder::CostToCome(double parent_node_cost, uint8_t action) {
     if (action < kUpRight) {

@@ -32,16 +32,17 @@
 #define INCLUDE_PATHFINDER_PATHFINDER_H_
 
 // C headers
-#include <math.h>
+// #include <math.h>
 // C++ headers
 #include <cstdint>
 #include <utility>
 #include <vector>
-#include <queue>
+// #include <queue>
 #include <map>
 #include <opencv2/opencv.hpp>
 // Other headers
 #include "actions/actions.h"
+#include "structures/nodes.h"
 #include "structures/structures.h"
 #include "consoleLogger/consoleLogger.h"
 
@@ -58,12 +59,7 @@ class PathFinder {
         cv::Mat robot_world;
 
         // Nodes and costs
-        std::vector<Node> open_nodes;
-        std::vector<Node> incons_nodes;
-        std::vector<Node> closed_nodes;
-
-        std::map<uint32_t, double> cost_to_come;
-        std::map<uint32_t, double> final_cost;
+        NodeList open_nodes, closed_nodes, incons_nodes;
 
         // Class objects
         ConsoleLogger logger = ConsoleLogger(kInfo);
@@ -114,13 +110,6 @@ class PathFinder {
          * @return Minimum f-value
          */
         double GetMinCost();
-
-        /**
-         * @brief Check whether a node is in the list
-         * @param node_list A vector of nodes
-         * @return Index of the element if present
-         */
-        int16_t FindNodeInList(std::vector<Node> &node_list, uint16_t x, uint16_t y);
 
     public:
         /**
