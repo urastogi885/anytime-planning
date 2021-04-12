@@ -32,12 +32,12 @@
 #define INCLUDE_STRUCTURES_STRUCTURES_H_
 
 // C headers
-#include <math.h>
+// #include <math.h>
 // C++ headers
-#include <cstdint>
-#include <map>
+// #include <cstdint>
+// #include <map>
 
-#define DEFVAL -1
+#define DEFVAL 0
 
 enum Action {
     kUp = 0,
@@ -71,52 +71,27 @@ enum ExitCodes {
     kPathNotExist       // Path does exist from start to goal
 };
 
-struct Node {
-    uint16_t x, y;
-    int32_t parent;
-    double final_cost;
-    double psuedo_cost;
-
-    Node(uint16_t x, uint16_t y, double cost, int32_t parent = DEFVAL, double psuedo_cost = -1)
-        : x(x), y(y), final_cost(cost), parent(parent), psuedo_cost(psuedo_cost) {
-    }
-};
-
-struct CompareTotalCost {
-    bool operator()(Node const& a, Node const& b) const{
-        // reverse sort to put the lowest value at the top
-        return a.final_cost > b.final_cost;
-    }
-};
-
-struct ComparePsuedoCost {
-    bool operator()(Node const& a, Node const& b) const{
-        // reverse sort to put the lowest value at the top
-        return a.psuedo_cost > b.psuedo_cost;
-    }
-};
-
 // Return infinity as default value for unordered maps
-template<typename K, typename M>
-M& operator|(std::map<K, M>& umap, const K& key) {
-    static M defval{INFINITY};
+// template<typename K, typename M>
+// M& operator|(std::map<K, M>& umap, const K& key) {
+//     static M defval{DEFVAL}; // INFINITY
 
-    if (!umap.count(key)) {
-        return defval;
-    }
+//     if (!umap.count(key)) {
+//         return defval;
+//     }
 
-    return umap[key];
-}
+//     return umap[key];
+// }
 
-template<typename C, typename V>
-V& operator%(std::map<C, V>& umap, const C& key) {
-    static V defval{DEFVAL};
+// template<typename C, typename V>
+// V& operator%(std::map<C, V>& umap, const C& key) {
+//     static V defval{DEFVAL};
 
-    if (!umap.count(key)) {
-        return defval;
-    }
+//     if (!umap.count(key)) {
+//         return defval;
+//     }
 
-    return umap[key];
-}
+//     return umap[key];
+// }
 
 #endif  //  INCLUDE_STRUCTURES_STRUCTURES_H_
