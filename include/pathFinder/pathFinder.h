@@ -51,7 +51,6 @@ class PathFinder {
         // Constants
         const int8_t kNoParent = -1;
         const int8_t kStartParent = -2;
-        const int8_t kNotInList = -1;
 
         // Robot world
         uint16_t robot_start_pos[2], robot_goal_pos[2];
@@ -59,7 +58,7 @@ class PathFinder {
         cv::Mat robot_world;
 
         // Nodes and costs
-        NodeList open_nodes, closed_nodes, incons_nodes;
+        NodeList open_nodes, closed_nodes, incons_nodes, visited_nodes;
 
         // Class objects
         ConsoleLogger logger = ConsoleLogger(kInfo);
@@ -99,17 +98,11 @@ class PathFinder {
 
         /**
          * @brief Improve path if possible
+         * @param goal Goal node
          * @param epsilon Inflation factor
          * @return none
          */
-        void ImprovePath(float epsilon);
-
-        /**
-         * @brief Get minimum f-value among open and inconsistent nodes
-         * @param none
-         * @return Minimum f-value
-         */
-        double GetMinCost();
+        Node* ImprovePath(Node* goal, float epsilon);
 
     public:
         /**
@@ -150,7 +143,7 @@ class PathFinder {
          * @param path_nodes A map of nodes to find path to goal
          * @return nothing
          */
-        void GeneratePathList(uint32_t list_index);
+        void GeneratePathList(Node* goal, uint32_t list_index);
 
         /**
          * @brief Finds a path from start to goal if it exists using A*
