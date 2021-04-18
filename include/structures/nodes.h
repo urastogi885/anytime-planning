@@ -31,21 +31,24 @@
 #ifndef INCLUDE_STRUCTURES_NODES_H_
 #define INCLUDE_STRUCTURES_NODES_H_
 
+#define NOT_IN_LIST -1
+
 // C++ headers
 #include <cstdint>
 #include <vector>
 
 class Node {
-    std::vector<uint16_t> coordinates;
-    Node* parent;
-    double g_value;
-    double f_value;
+    private:
+        std::vector<uint16_t> coordinates;
+        Node* parent;
+        double g_value;
+        double f_value;
 
     public:
         /**
          * @brief Constructor for the node class
          */
-        Node(uint16_t x, uint16_t y, double cost2come, double cost2go, Node* parent_node);
+        Node(uint16_t x, uint16_t y, double cost2come, double final_cost, Node* parent_node);
 
         ~Node();
 
@@ -55,9 +58,9 @@ class Node {
 
         void SetParent(Node* p);
 
-        double GetCostToGo();
+        double GetFinalCost();
 
-        void SetCostToGo(double cost);
+        void SetFinalCost(double cost);
 
         double GetCostToCome();
 
@@ -69,26 +72,31 @@ class Node {
 };
 
 class NodeList {
-    std::vector<Node*> nodes;
+    private :
+        std::vector<Node*> nodes;
 
     public:
         void AddNode(Node* node);
 
-        Node* GetTopNode();
+        int16_t GetTopNode();
         
         void Pop();
 
         Node* GetLastNode();
 
-        Node* GetNode(int index);
+        Node* GetNode(int16_t index);
 
-        void DeleteNode(int index);
+        void DeleteNode(int16_t index);
 
         bool IsEmpty();
 
         int16_t FindNode(Node* node);
 
-        std::vector<Node*> GetList();
+        int16_t FindNode(uint16_t x, uint16_t y);
+
+        std::vector<Node*> &GetList();
+
+        void ClearList();
 };
 
 #endif  // INCLUDE_STRUCTURES_NODES_H_

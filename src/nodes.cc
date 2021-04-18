@@ -32,12 +32,12 @@
 #include "structures/nodes.h"
 
 // <---Methods of Node class--->
-Node::Node(uint16_t x, uint16_t y, double cost2come, double cost2go, Node* parent_node) {
+Node::Node(uint16_t x, uint16_t y, double cost2come, double final_cost, Node* parent_node) {
     coordinates.push_back(x);
     coordinates.push_back(y);
     parent = parent_node;
     g_value = cost2come;
-    f_value = cost2go;
+    f_value = final_cost;
 }
 
 Node::~Node() {
@@ -55,11 +55,11 @@ void Node::SetParent(Node* p) {
     parent = p;
 }
 
-double Node::GetCostToGo() {
+double Node::GetFinalCost() {
     return f_value;
 }
 
-void Node::SetCostToGo(double cost) {
+void Node::SetFinalCost(double cost) {
     f_value = cost;
 }
 
@@ -76,9 +76,19 @@ void NodeList::AddNode(Node* node) {
     nodes.push_back(node);
 }
 
-Node* NodeList::GetTopNode() {
-    std::sort(nodes.begin(), nodes.end());
-    return nodes.front();
+int16_t NodeList::GetTopNode() {
+    Node* temp = nodes.front();
+    double least = temp->GetFinalCost();
+    int16_t index = 0;
+    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+        temp = *it;
+        if (temp->GetFinalCost() <= least) {
+            least = temp->GetFinalCost();
+            index = it - nodes.begin();
+        }
+    }
+
+    return index;
 }
 
 void NodeList::Pop() {
@@ -89,11 +99,11 @@ Node* NodeList::GetLastNode() {
     return nodes.back();
 }
 
-Node* NodeList::GetNode(int index) {
+Node* NodeList::GetNode(int16_t index) {
     return nodes[index];
 }
 
-void NodeList::DeleteNode(int index) {
+void NodeList::DeleteNode(int16_t index) {
     nodes.erase(nodes.begin() + index);
     return;
 }
@@ -108,9 +118,26 @@ int16_t NodeList::FindNode(Node* node) {
             return it - nodes.begin();
         }
     }
-    return -1;
+    return NOT_IN_LIST;
 }
 
-std::vector<Node*> NodeList::GetList() {
+int16_t NodeList::FindNode(uint16_t x, uint16_t y) {
+    Node *node;
+    std::vector<uint16_t> coords;
+    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+        node = *it;
+        coords = node->GetCoordinates();
+        if (x == coords[0] && y == coords[1]) {
+            return it - nodes.begin();
+        }
+    }
+    return NOT_IN_LIST;
+}
+
+std::vector<Node*> &NodeList::GetList() {
     return nodes;
+}
+
+void NodeList::ClearList() {
+    nodes.clear();
 }
