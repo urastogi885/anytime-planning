@@ -31,12 +31,6 @@
 #ifndef INCLUDE_STRUCTURES_STRUCTURES_H_
 #define INCLUDE_STRUCTURES_STRUCTURES_H_
 
-// C headers
-#include <math.h>
-// C++ headers
-#include <cstdint>
-#include <unordered_map>
-
 enum Action {
     kUp = 0,
     kDown,
@@ -68,33 +62,5 @@ enum ExitCodes {
     kObtsacleSpace,     // Start or goal lie in obatcle space
     kPathNotExist       // Path does exist from start to goal
 };
-
-struct Node {
-    uint16_t x, y;
-    double final_cost;
-
-    Node(uint16_t x, uint16_t y, double cost)
-        : x(x), y(y), final_cost(cost) {
-    }
-};
-
-struct CompareTotalCost {
-    bool operator()(Node const& a, Node const& b) const{
-        // reverse sort to put the lowest value at the top
-        return a.final_cost > b.final_cost;
-    }
-};
-
-// Return infinity as default value for unordered maps
-template<typename K, typename M>
-M& operator|(std::unordered_map<K, M>& umap, const K& key) {
-    static M defval{INFINITY};
-
-    if (!umap.count(key)) {
-        return defval;
-    }
-
-    return umap[key];
-}
 
 #endif  //  INCLUDE_STRUCTURES_STRUCTURES_H_
