@@ -31,14 +31,6 @@
 #ifndef INCLUDE_STRUCTURES_STRUCTURES_H_
 #define INCLUDE_STRUCTURES_STRUCTURES_H_
 
-// C headers
-// #include <math.h>
-// C++ headers
-// #include <cstdint>
-// #include <map>
-
-#define DEFVAL 0
-
 enum Action {
     kUp = 0,
     kDown,
@@ -70,28 +62,5 @@ enum ExitCodes {
     kObtsacleSpace,     // Start or goal lie in obatcle space
     kPathNotExist       // Path does exist from start to goal
 };
-
-// Return infinity as default value for unordered maps
-// template<typename K, typename M>
-// M& operator|(std::map<K, M>& umap, const K& key) {
-//     static M defval{DEFVAL}; // INFINITY
-
-//     if (!umap.count(key)) {
-//         return defval;
-//     }
-
-//     return umap[key];
-// }
-
-// template<typename C, typename V>
-// V& operator%(std::map<C, V>& umap, const C& key) {
-//     static V defval{DEFVAL};
-
-//     if (!umap.count(key)) {
-//         return defval;
-//     }
-
-//     return umap[key];
-// }
 
 #endif  //  INCLUDE_STRUCTURES_STRUCTURES_H_
