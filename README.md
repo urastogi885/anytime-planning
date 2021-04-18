@@ -40,7 +40,7 @@ bash explorer.sh
 python main.py <start_x,start_y> <goal_x,goal_y> <robot_radius, clearance> <method> <inflation_factor>
 ```
 
-- Currently, the methods are referenced in the following way:
+- Currently, the methods can be referenced in the following way:
 ```
 0 - A*
 1 - Anytime A* (ATA*)

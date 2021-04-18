@@ -32,16 +32,17 @@
 #define INCLUDE_PATHFINDER_PATHFINDER_H_
 
 // C headers
-#include <math.h>
+// #include <math.h>
 // C++ headers
 #include <cstdint>
 #include <utility>
 #include <vector>
-#include <queue>
-#include <unordered_map>
+// #include <queue>
+#include <map>
 #include <opencv2/opencv.hpp>
 // Other headers
 #include "actions/actions.h"
+#include "structures/nodes.h"
 #include "structures/structures.h"
 #include "consoleLogger/consoleLogger.h"
 
@@ -50,16 +51,15 @@ class PathFinder {
         // Constants
         const int8_t kNoParent = -1;
         const int8_t kStartParent = -2;
-        const char kPathListFileName[13] = "pathList.txt";
+
         // Robot world
         uint16_t robot_start_pos[2], robot_goal_pos[2];
         uint16_t robot_world_size[2];
         cv::Mat robot_world;
+
         // Nodes and costs
-        std::unordered_map<uint32_t, int64_t> parent_nodes;
-        std::unordered_map<uint32_t, double> cost_to_come;
-        std::unordered_map<uint32_t, double> final_cost;
-        std::unordered_map<uint32_t, bool> open_nodes_check_map;
+        NodeList open_nodes, closed_nodes, incons_nodes, visited_nodes;
+
         // Class objects
         ConsoleLogger logger = ConsoleLogger(kInfo);
         Actions actions;
@@ -87,14 +87,22 @@ class PathFinder {
          * @param pos_y y-coordinate of the node
          * @return a unique identifying integer
          */
-        uint32_t RavelIndex(uint16_t pos_x, uint16_t pos_y);
+        int32_t RavelIndex(uint16_t pos_x, uint16_t pos_y);
 
         /**
          * @brief Convert an integer into an element location
          * @param identifier x-coordinate of the node
          * @return location of the element
          */
-        std::pair<uint16_t, uint16_t> UnravelIndex(uint32_t identifier);
+        std::pair<uint16_t, uint16_t> UnravelIndex(int32_t identifier);
+
+        /**
+         * @brief Improve path if possible
+         * @param goal Goal node
+         * @param epsilon Inflation factor
+         * @return none
+         */
+        Node* ImprovePath(Node* goal, float epsilon);
 
     public:
         /**
@@ -135,33 +143,33 @@ class PathFinder {
          * @param path_nodes A map of nodes to find path to goal
          * @return nothing
          */
-        void GeneratePathList(std::unordered_map<uint32_t, int64_t> path_nodes, uint32_t list_index);
+        void GeneratePathList(Node* goal, uint32_t list_index);
 
         /**
          * @brief Finds a path from start to goal if it exists using A*
          * @param none
-         * @return nothing
+         * @return suceess
          */
         bool Astar();
 
         /**
          * @brief Finds a path from start to goal if it exists using ATA*
-         * @param none
-         * @return nothing
+         * @param epsilon Inflation factor
+         * @return success
          */
         bool AtaStar(float epsilon);
 
         /**
          * @brief Finds a path from start to goal if it exists using ARA*
-         * @param none
-         * @return nothing
+         * @param epsilon Inflation factor
+         * @return success
          */
         bool AraStar(float epsilon);
 
         /**
          * @brief Finds a path from start to goal if it exists using ANA*
-         * @param none
-         * @return nothing
+         * @param epsilon Inflation factor
+         * @return success
          */
         bool AnaStar();
 };

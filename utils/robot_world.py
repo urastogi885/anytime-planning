@@ -271,14 +271,17 @@ class RobotWorld:
             for file in text_files_list:
                 map_img = self.world_img.copy()
                 path_nodes = open(file, "r")
-                for line in path_nodes.readlines():
+                path_nodes = path_nodes.readlines()
+                start = path_nodes[0].split(",")
+                goal = path_nodes[-1].split(",")
+                for line in path_nodes:
                     node = line.split(",")
                     map_img[self.WORLD_SIZE[0] - int(node[1]), int(node[0])] = blue
                     video_output.write(map_img)
 
                 # Draw start and goal node to the video frame in the form of filled circle
-                cv2.circle(map_img, (self.start_pos[0], self.WORLD_SIZE[0] - self.start_pos[1]), 3, green, -1)
-                cv2.circle(map_img, (self.goal_pos[0], self.WORLD_SIZE[0] - self.goal_pos[1]), 3, red, -1)
+                cv2.circle(map_img, (int(start[0]), self.WORLD_SIZE[0] - int(start[1])), 3, green, -1)
+                cv2.circle(map_img, (int(goal[0]), self.WORLD_SIZE[0] - int(goal[1])), 3, red, -1)
 
                 # Show path for some time after exploration
                 for _ in range(50):
