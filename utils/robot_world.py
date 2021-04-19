@@ -65,10 +65,10 @@ def get_path_list(dir: str) -> list:
 class RobotWorld:
     def __init__(self, start: tuple, goal: tuple, radius: int, clearance: int) -> None:
         # Declare class constants
-        self.WORLD_SIZE = 200, 300
+        self.WORLD_SIZE = 1000, 1000    # 200, 300
         self.DEG_30 = np.pi / 6
         self.DEG_60 = np.pi / 3
-        self.IMG_NAME = "robot_world.png"
+        self.IMG_NAME = "robot_world_ros.png"
         self.CHECK_IMG_NAME = "check_img.png"
         self.SAVE_DIR = "images"
         self.BUILD_DIR = "build"
@@ -261,7 +261,7 @@ class RobotWorld:
             # Define video-writer of open-cv to record the exploration and final path
             video_format = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D')
             video_output = cv2.VideoWriter('exploration' + '.avi', video_format, 200.0,
-                                        (self.WORLD_SIZE[1], self.WORLD_SIZE[0]))
+                                        (1000, 1000))
             # Define various color vectors
             red = [0, 0, 255]
             blue = [255, 0, 0]

@@ -2,7 +2,6 @@ import os
 import ast
 from sys import argv
 
-import utils.robot_world
 from utils.robot_world import RobotWorld
 
 """
