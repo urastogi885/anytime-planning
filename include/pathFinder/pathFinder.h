@@ -59,6 +59,8 @@ class PathFinder {
 
         // Nodes and costs
         NodeList open_nodes, closed_nodes, incons_nodes, visited_nodes;
+        double best_goal_cost2come;
+        double epsilon_min;
 
         // Class objects
         ConsoleLogger logger = ConsoleLogger(kInfo);
@@ -82,6 +84,15 @@ class PathFinder {
         double CostToGo(uint16_t pos_x, uint16_t pos_y, float epsilon = 1.0);
 
         /**
+         * @brief Finds an estimate of the cost to reach the goal from a node (heuristic)
+         * @param pos_x x-coordinate of the node
+         * @param pos_y y-coordinate of the node
+         * @param cost2come [Optional] Cost-to-come of the node
+         * @return an estimate of the cost cost to reach the goal
+         */
+        double FindNonparamCost(uint16_t pos_x, uint16_t pos_y, double cost2come = 0);
+
+        /**
          * @brief Convert an element location into a unique integer
          * @param pos_x x-coordinate of the node
          * @param pos_y y-coordinate of the node
@@ -103,6 +114,13 @@ class PathFinder {
          * @return none
          */
         Node* ImprovePath(Node* goal, float epsilon);
+
+        /**
+         * @brief Improve path if possible
+         * @param goal Goal node
+         * @return none
+         */
+        Node* ImproveSolution(Node* goal);
 
     public:
         /**

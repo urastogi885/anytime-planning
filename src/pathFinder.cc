@@ -48,6 +48,9 @@ PathFinder::PathFinder(uint16_t start_x, uint16_t start_y, uint16_t goal_x,
     robot_world = cv::imread(robot_world_loc, CV_LOAD_IMAGE_GRAYSCALE);
     robot_world_size[1] = robot_world.rows;
     robot_world_size[0] = robot_world.cols;
+    // Costs
+    best_goal_cost2come = __DBL_MAX__;
+    epsilon_min = __DBL_MAX__;
 }
 
 bool PathFinder::FindPathToGoal(uint8_t method, float epsilon) {
@@ -96,9 +99,6 @@ void PathFinder::GeneratePathList(Node* goal, uint32_t list_index) {
 }
 
 bool PathFinder::Astar() {
-    // Start timer
-    auto start = std::chrono::high_resolution_clock::now();
-
     // Add parent map
     std::map<uint32_t, int8_t> parent_map;
     parent_map[RavelIndex(robot_start_pos[0], robot_start_pos[1])] = kStartParent;
@@ -123,10 +123,6 @@ bool PathFinder::Astar() {
         if (current_coords[0] == robot_goal_pos[0] && current_coords[1] == robot_goal_pos[1]) {
             logger.Log("Path to goal FOUND!", kDebug);
             GeneratePathList(current_node, 1);
-            
-            // Record time
-            auto stop = std::chrono::high_resolution_clock::now();
-            std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << std::endl;
             return true;
         }
 
@@ -259,6 +255,9 @@ bool PathFinder::AraStar(float epsilon) {
     goal_node = ImprovePath(goal_node, epsilon);
 
     // Publish current best solution
+    if (goal_node == NULL) {
+        return false;
+    }
     GeneratePathList(goal_node, ++output_count);
 
     while (epsilon > 1) {
@@ -280,6 +279,9 @@ bool PathFinder::AraStar(float epsilon) {
         goal_node = ImprovePath(goal_node, epsilon);
 
         // Publish current best solution
+        if (goal_node == NULL) {
+            return false;
+        }
         GeneratePathList(goal_node, ++output_count);
     }
 
@@ -288,7 +290,103 @@ bool PathFinder::AraStar(float epsilon) {
 
 bool PathFinder::AnaStar() {
     logger.Log("Method is UNDER DEVELOPMENT! Use some other method.", kInfo);
-    return false;
+    uint32_t output_count = 0;
+    Node *temp_node;
+
+    // Initialize open nodes
+    open_nodes.AddNode(new Node(robot_start_pos[0], robot_start_pos[1], 0,
+                            FindNonparamCost(robot_start_pos[0], robot_start_pos[1]),
+                            NULL));
+
+    // Define goal node
+    Node *goal_node = new Node(robot_goal_pos[0], robot_goal_pos[1], __DBL_MAX__, __DBL_MAX__, NULL);
+    logger.Log("Nodes initialized", kDebug);
+
+    while (!open_nodes.IsEmpty()) {
+        goal_node = ImproveSolution(goal_node);
+
+        // Publish current best solution
+        if (goal_node == NULL) {
+            return false;
+        }
+        GeneratePathList(goal_node, ++output_count);
+
+        // Update and prune nodes 
+        auto &open_nodes_list = open_nodes.GetList();
+        for (auto it = open_nodes_list.begin(); it != open_nodes_list.end(); ++it) {
+            temp_node = *it;
+            if (temp_node->GetCostToCome() + CostToGo(temp_node->GetCoordinates()[0], temp_node->GetCoordinates()[1]) >= best_goal_cost2come) {
+                open_nodes_list.erase(it);
+            } else {
+                temp_node->SetFinalCost(FindNonparamCost(robot_start_pos[0], robot_start_pos[1]));
+            }
+        }
+    }
+
+    return true;
+}
+
+Node* PathFinder::ImproveSolution(Node* goal) {
+    Node *current_node, *temp;
+    int16_t current_node_index;
+    while (!open_nodes.IsEmpty()) {
+        // Get node with minimum f-value on top
+        current_node_index = open_nodes.GetTopNode();
+        current_node = open_nodes.GetNode(current_node_index);
+        open_nodes.DeleteNode(current_node_index);
+        visited_nodes.AddNode(current_node);
+
+        auto current_coords = current_node->GetCoordinates();
+
+        if (current_node->GetFinalCost() < epsilon_min) {
+            epsilon_min = current_node->GetFinalCost();
+            // logger.Log("Min. E changed", kDebug);
+        }
+
+        // Exit if goal is found
+        if (current_coords[0] == robot_goal_pos[0] && current_coords[1] == robot_goal_pos[1]) {
+            best_goal_cost2come = current_node->GetCostToCome();
+            goal->SetParent(current_node->GetParent());
+            goal->SetCostToCome(current_node->GetCostToCome());
+            goal->SetFinalCost(current_node->GetFinalCost());
+            logger.Log("Goal found!", kDebug);
+            return goal;
+        }
+
+        // Get neighbors to the current node
+        for (int i = 0; i < actions.kMaxNumActions; ++i) {
+            uint16_t x = actions.GetNextCoord(current_coords[0], i);
+            uint16_t y = actions.GetNextCoord(current_coords[1], i, 'y');
+
+            if (IsNodeValid(x, y)) {
+                double cost2come = CostToCome(current_node->GetCostToCome(), i);
+                double final_cost = FindNonparamCost(x, y, cost2come);
+                
+                // Add newly discovered node, else update prior node
+                int16_t open_index = open_nodes.FindNode(x, y);
+                int16_t visited_index = visited_nodes.FindNode(x, y);
+                if (open_index == NOT_IN_LIST && visited_index == NOT_IN_LIST) {
+                    open_nodes.AddNode(new Node(x, y, cost2come, final_cost, current_node));
+                    // logger.Log("New node", kDebug);
+                } else {
+                    temp = (open_index != NOT_IN_LIST ? open_nodes.GetNode(open_index) : visited_nodes.GetNode(visited_index));
+                    if (cost2come < temp->GetCostToCome()) {
+                        temp->SetCostToCome(cost2come);
+                        temp->SetParent(current_node);
+                        if (cost2come + CostToGo(x, y) < best_goal_cost2come) {
+                            temp->SetFinalCost(final_cost);
+                            if(open_index == NOT_IN_LIST) {
+                                open_nodes.AddNode(temp);
+                                visited_nodes.DeleteNode(visited_index);
+                                // logger.Log("Are you here???", kDebug);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return NULL;
 }
 
 Node* PathFinder::ImprovePath(Node* goal, float epsilon) {
@@ -325,7 +423,6 @@ Node* PathFinder::ImprovePath(Node* goal, float epsilon) {
                 // Add newly discovered node, else update prior node
                 if (visited_nodes.FindNode(x, y) == NOT_IN_LIST) {
                     open_nodes.AddNode(new Node(x, y, cost2come, final_cost, current_node));
-                    // logger.Log("I'm in visited_nodes if", kDebug);
                 } else {
                     int16_t index = closed_nodes.FindNode(x, y);
                     if (index != NOT_IN_LIST) {
@@ -341,7 +438,7 @@ Node* PathFinder::ImprovePath(Node* goal, float epsilon) {
             }
         }
     }
-    logger.Log("Goal found!", kFatal);
+    logger.Log("Goal not found!", kFatal);
     return NULL;
 }
 
@@ -376,6 +473,10 @@ int32_t PathFinder::RavelIndex(uint16_t pos_x, uint16_t pos_y) {
 std::pair<uint16_t, uint16_t> PathFinder::UnravelIndex(int32_t identifier) {
     return std::make_pair(static_cast<uint16_t>(identifier%robot_world_size[0]),
                     static_cast<uint16_t>(identifier/robot_world_size[0]));
+}
+
+double PathFinder::FindNonparamCost(uint16_t pos_x, uint16_t pos_y, double cost2come) {
+    return (best_goal_cost2come - cost2come)/CostToGo(pos_x, pos_y);
 }
 
 PathFinder::~PathFinder() {
