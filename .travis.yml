@@ -18,7 +18,7 @@ env:
 # Install system dependencies, namely a very barebones ROS setup.
 before_install:
   - sudo apt-get update
-  - sudo apt-get install python3
+  - sudo apt-get install python3.6
   - pip3 install numpy opencv-python
   - sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu $ROS_CI_DESKTOP main\" > /etc/apt/sources.list.d/ros-latest.list"
   - sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
@@ -68,4 +68,4 @@ script:
   - source devel/setup.bash
   - cd src/anytime-planning/
   - bash explorer.sh
-  - python main.py 50,30 150,150 3,1 0 1
+  - python3 main.py 50,30 150,150 3,1 0 1
