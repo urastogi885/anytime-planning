@@ -18,10 +18,11 @@ env:
 
 # Python-3.5
 addons:
-  sources:
-      - deadsnakes # source required so it finds the package definition below
-    packages:
-      - python3.5
+  apt:
+    sources:
+        - deadsnakes # source required so it finds the package definition below
+      packages:
+        - python3.5
 
 # Install system dependencies, namely a very barebones ROS setup.
 before_install:
