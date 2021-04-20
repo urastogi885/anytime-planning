@@ -16,6 +16,13 @@ env:
 
 ################################################################################
 
+# Python-3.5
+addons:
+  sources:
+      - deadsnakes # source required so it finds the package definition below
+    packages:
+      - python3.5
+
 # Install system dependencies, namely a very barebones ROS setup.
 before_install:
   - sudo sh -c "echo \"deb http://packages.ros.org/ros/ubuntu $ROS_CI_DESKTOP main\" > /etc/apt/sources.list.d/ros-latest.list"
@@ -32,10 +39,8 @@ before_install:
   # Prepare rosdep to install dependencies.
   - sudo rosdep init
   - rosdep update
-  # Install python-3.6 and some necessary libraries
-  - sudo apt-get install python3 python3-pip python3-setuptools
-  - pip3 install --upgrade pip && pip install --upgrade pip
-  - pip3 install numpy opencv-python
+  # Install python-3 and some necessary libraries
+  - python3 -m pip install numpy opencv-python
 
 # Create a catkin workspace with the package under integration.
 install:
@@ -73,4 +78,3 @@ script:
   - source devel/setup.bash
   - cd src/anytime-planning/
   - bash explorer.sh
-  - python3 main.py 50,30 150,150 3,1 0 1
