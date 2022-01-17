@@ -257,8 +257,8 @@ class RobotWorld:
             print("[INFO] Creating video...")
 
             # Define video-writer of open-cv to record the exploration and final path
-            video_format = cv2.VideoWriter_fourcc('X', 'V', 'I', 'D')
-            video_output = cv2.VideoWriter('exploration' + '.avi', video_format, 200.0,
+            video_format = cv2.VideoWriter_fourcc(*'mp4v')
+            video_output = cv2.VideoWriter('exploration' + '.mp4', video_format, 200.0,
                                         (self.WORLD_SIZE[1], self.WORLD_SIZE[0]))
             # Define various color vectors
             red = [0, 0, 255]
