@@ -33,22 +33,29 @@ python -m pip install numpy shutil glob opencv-python
 git clone https://github.com/urastogi885/anytime-planning
 cd anytime-planning/
 ```
+- Run the project
+```
+bash run_anytime_planning.sh
+```
+- Arguments in the shell script
+```
+-h  show this help text
 
-- Configure the project and run it
-```
-bash explorer.sh
-python main.py <start_x,start_y> <goal_x,goal_y> <robot_radius, clearance> <method> <inflation_factor>
-```
+-x  set the start x-coordinate (default: $start_x, type: int)
 
-- Currently, the methods can be referenced in the following way:
-```
-0 - A*
-1 - Anytime A* (ATA*)
-2 - Anytime Repairing A* (ARA*)
-3 - Anytime Nonparametric A* (ANA*)
-```
+-y  set the start y-coordinate (default: $start_y, type: int)
 
-- For instance, to execute ATA*, you can use the following command:
+-a  set the goal x-coordinate (default: $goal_x, type: int)
+
+-b  set the goal y-coordinate (default: $goal_y, type: int)
+
+-r  set radius of the robot (default: $robot_radius, type: int)
+
+-c  set clearance required between the robot and obstacles (default: $clearance, type: int)
+
+-m  set method the robot uses to find path from start to goal (default: $method, , type: int)
+    Use 0: A*, 1: ATA*, 2: ARA*, 3: ANA*
+    
+-i  set inflation factor for the method (default: $inflation_factor, type: float, minimum: 1.0)
 ```
-python main.py 50,30 150,150 3,2 1 3.5
-```
+- Note: The world size is 300x200 so set the start and goal point accordingly.
