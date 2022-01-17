@@ -41,21 +41,21 @@ bash run_anytime_planning.sh
 ```
 -h  show this help text
 
--x  set the start x-coordinate (default: $start_x, type: int)
+-x  set the start x-coordinate (default: 50, type: int)
 
--y  set the start y-coordinate (default: $start_y, type: int)
+-y  set the start y-coordinate (default: 30, type: int)
 
--a  set the goal x-coordinate (default: $goal_x, type: int)
+-a  set the goal x-coordinate (default: 150, type: int)
 
--b  set the goal y-coordinate (default: $goal_y, type: int)
+-b  set the goal y-coordinate (default: 150, type: int)
 
--r  set radius of the robot (default: $robot_radius, type: int)
+-r  set radius of the robot (default: 3, type: int)
 
--c  set clearance required between the robot and obstacles (default: $clearance, type: int)
+-c  set clearance required between the robot and obstacles (default: 2, type: int)
 
--m  set method the robot uses to find path from start to goal (default: $method, , type: int)
+-m  set method the robot uses to find path from start to goal (default: 0, , type: int)
     Use 0: A*, 1: ATA*, 2: ARA*, 3: ANA*
     
--i  set inflation factor for the method (default: $inflation_factor, type: float, minimum: 1.0)
+-i  set inflation factor for the method (default: 1.0, type: float, minimum: 1.0)
 ```
 - Note: The world size is 300x200 so set the start and goal point accordingly.
