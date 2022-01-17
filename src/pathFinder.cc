@@ -126,7 +126,7 @@ bool PathFinder::Astar() {
             
             // Record time
             auto stop = std::chrono::high_resolution_clock::now();
-            std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << std::endl;
+            std::cout << "Time taken in ms: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << std::endl;
             return true;
         }
 

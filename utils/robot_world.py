@@ -84,8 +84,6 @@ class RobotWorld:
         self.goal_pos = goal
         # Get the robot's world
         self.world_img = self.draw_obstacles()
-        # Get image to search for obstacles
-        self.erode_image()
 
     def draw_circle(self) -> None:
         """
