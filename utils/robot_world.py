@@ -247,9 +247,6 @@ class RobotWorld:
         :param map_img: 2-d array with information of the map
         :return: nothing
         """
-        # Add space between logs
-        print("\n")
-
         # Get list of text file(s)
         text_files_list = get_path_list(self.TEXT_FILES_LOC + "/*.txt")
         if text_files_list is not None:
@@ -257,8 +254,9 @@ class RobotWorld:
             print("[INFO] Creating video...")
 
             # Define video-writer of open-cv to record the exploration and final path
+            video_file_name = "exploration.mp4"
             video_format = cv2.VideoWriter_fourcc(*'mp4v')
-            video_output = cv2.VideoWriter('exploration' + '.mp4', video_format, 200.0,
+            video_output = cv2.VideoWriter(video_file_name, video_format, 200.0,
                                         (self.WORLD_SIZE[1], self.WORLD_SIZE[0]))
             # Define various color vectors
             red = [0, 0, 255]
@@ -292,11 +290,12 @@ class RobotWorld:
             shutil.rmtree(self.TEXT_FILES_LOC)
 
             # Check if video file was created
-            if os.path.exists(os.path.join(os.getcwd(), "exploration.avi")):
+            if os.path.exists(os.path.join(os.getcwd(), video_file_name)):
                 print("[DEBUG] Video creation SUCCESSFUL!")
                 return True
 
             print("[DEBUG] Video creation UNSUCCESSFUL!")
+            return False
 
         print("[DEBUG] Path file NOT FOUND!")
         return False

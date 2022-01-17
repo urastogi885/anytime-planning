@@ -66,5 +66,6 @@ bash explorer.sh
 cd build/
 ./explorer $start_x $start_y $goal_x $goal_y $method $inflation_factor $world_img
 cd ../
+echo ""
 # Create video to show path
 python3 utils/create_video.py $start_x,$start_y $goal_x,$goal_y $robot_radius,$clearance
